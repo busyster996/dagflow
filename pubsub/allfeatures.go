@@ -1,0 +1,7 @@
+//go:build dagflow.allfeatures
+
+package pubsub
+
+import (
+	_ "github.com/busyster996/dagflow/pubsub/queue/amqp"
+)

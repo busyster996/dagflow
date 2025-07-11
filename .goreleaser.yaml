@@ -1,0 +1,43 @@
+﻿version: 2
+project_name: dagflow
+
+before:
+  hooks:
+    - go mod tidy
+    - go vet ./...
+    - go fmt ./...
+
+builds:
+  - id: dagflow
+    main: cmd/main.go
+    flags:
+      - -trimpath
+    tags:
+      - dagflow.allfeatures
+      - codec.notfastpath
+    ldflags:
+      - -s -w
+      - -X "github.com/busyster996/dagflow/pkg/info.Version={{.Version}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.GitUrl={{.GitURL}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.GitBranch={{.Branch}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.GitCommit={{.FullCommit}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.BuildTime={{.Date}}"
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - "linux"
+      - "windows"
+      - "darwin"
+    goarch:
+      - "386"
+      - "arm64"
+      - "amd64"
+    goamd64:
+      - "v1"
+
+archives:
+  - format: binary
+    wrap_in_directory: true
+
+release:
+  disable: true
