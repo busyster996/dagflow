@@ -24,6 +24,7 @@ import (
 	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pubsub"
 	"github.com/busyster996/dagflow/storage"
+	"github.com/busyster996/dagflow/storage/models"
 	"github.com/busyster996/dagflow/utils"
 	"github.com/busyster996/dagflow/utils/sid"
 )
@@ -75,7 +76,23 @@ func Init() error {
 		logx.Errorln(err)
 		return err
 	}
-	return initStorage()
+
+	if err = initStorage(); err != nil {
+		logx.Errorln(err)
+		return err
+	}
+
+	if viper.GetBool("enable_self_update") {
+		utils.StartSelfUpdate(viper.GetString("self_url"), func() bool {
+			if (storage.TaskCount(models.StateRunning) + storage.TaskCount(models.StatePending)) != 0 {
+				// 还有任务执行中或者等待执行不升级
+				logx.Warnln("the task has not been completed")
+				return true
+			}
+			return false
+		})
+	}
+	return nil
 }
 
 func initPubsub() error {

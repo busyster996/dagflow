@@ -41,9 +41,6 @@ func New() *cobra.Command {
 				return errors.New("memory queues or sqlite database is not allowed")
 			}
 
-			if viper.GetBool("enable_self_update") {
-				utils.StartSelfUpdate(viper.GetString("self_url"))
-			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {

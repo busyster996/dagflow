@@ -18,20 +18,20 @@ import (
 	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pkg/osext"
 	"github.com/busyster996/dagflow/pkg/selfupdate"
-	"github.com/busyster996/dagflow/storage"
-	"github.com/busyster996/dagflow/storage/models"
 )
 
 type selfUpdate struct {
-	sHash []byte
-	sURL  string
-	cron  *cron.Cron
+	sHash    []byte
+	sURL     string
+	cron     *cron.Cron
+	skipFunc func() bool
 }
 
-func StartSelfUpdate(uri string) {
+func StartSelfUpdate(uri string, skipFunc func() bool) {
 	s := &selfUpdate{
-		sURL: strings.TrimSuffix(uri, "/"),
-		cron: cron.New(cron.WithSeconds()),
+		sURL:     strings.TrimSuffix(uri, "/"),
+		cron:     cron.New(cron.WithSeconds()),
+		skipFunc: skipFunc,
 	}
 	// 获取当前程序的hash
 	s.localSha256sum()
@@ -93,9 +93,7 @@ func (p *selfUpdate) doUpdate() {
 		return
 	}
 
-	if (storage.TaskCount(models.StateRunning) + storage.TaskCount(models.StatePending)) != 0 {
-		// 还有任务执行中或者等待执行不升级
-		logx.Warnln("the task has not been completed")
+	if p.skipFunc() {
 		return
 	}
 

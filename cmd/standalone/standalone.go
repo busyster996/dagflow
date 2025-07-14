@@ -36,9 +36,6 @@ func New() *cobra.Command {
 				return err
 			}
 
-			if viper.GetBool("enable_self_update") {
-				utils.StartSelfUpdate(viper.GetString("self_url"))
-			}
 			return nil
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
