@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/gin-gonic/gin"
+
+	"github.com/busyster996/dagflow/pkg/logx"
 )
 
 func Logger(c *gin.Context) {

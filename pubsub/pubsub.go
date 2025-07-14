@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/pkg/errors"
 
+	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pubsub/common"
 	"github.com/busyster996/dagflow/pubsub/queue"
 )

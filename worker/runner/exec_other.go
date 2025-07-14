@@ -13,11 +13,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/creack/pty"
 	"github.com/dlclark/regexp2"
 	"golang.org/x/term"
 
+	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/worker/common"
 )
 

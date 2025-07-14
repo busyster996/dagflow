@@ -8,11 +8,11 @@ import (
 	"runtime/debug"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/povsister/scp"
 	"golang.org/x/crypto/ssh"
 	"k8s.io/apimachinery/pkg/util/yaml"
 
+	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/storage"
 	"github.com/busyster996/dagflow/worker/common"
 )

@@ -13,9 +13,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/robfig/cron/v3"
 
+	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pkg/osext"
 	"github.com/busyster996/dagflow/pkg/selfupdate"
 	"github.com/busyster996/dagflow/storage"

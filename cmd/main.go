@@ -3,11 +3,9 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
@@ -15,6 +13,7 @@ import (
 	"github.com/busyster996/dagflow/cmd/standalone"
 	"github.com/busyster996/dagflow/cmd/worker"
 	"github.com/busyster996/dagflow/pkg/info"
+	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/utils"
 )
 
@@ -41,7 +40,6 @@ func main() {
 		SilenceErrors: true,
 		Version:       info.Version,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			fmt.Println("11111111111111111")
 			return nil
 		},
 	}

@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/glebarez/sqlite"
 	"github.com/go-gorm/caches/v4"
 	"github.com/pkg/errors"
@@ -22,6 +21,7 @@ import (
 	"gorm.io/gorm/logger"
 	"gorm.io/gorm/schema"
 
+	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pubsub"
 	"github.com/busyster996/dagflow/storage"
 	"github.com/busyster996/dagflow/utils"

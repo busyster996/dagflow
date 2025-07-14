@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
-	"github.com/busyster996/dagflow/pkg/rabbitmq"
 	"github.com/rabbitmq/amqp091-go"
 	"go.uber.org/zap"
 
+	"github.com/busyster996/dagflow/pkg/logx"
+	"github.com/busyster996/dagflow/pkg/rabbitmq"
 	"github.com/busyster996/dagflow/pubsub/common"
 	"github.com/busyster996/dagflow/pubsub/queue"
 	"github.com/busyster996/dagflow/utils"

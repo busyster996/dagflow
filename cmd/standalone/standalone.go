@@ -7,12 +7,12 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/kardianos/service"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
 	"github.com/busyster996/dagflow/config"
+	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/server"
 	"github.com/busyster996/dagflow/utils"
 	"github.com/busyster996/dagflow/worker"
@@ -68,7 +68,7 @@ func New() *cobra.Command {
 	cmd.Flags().String("addr", "tcp://0.0.0.0:2376", "listening address.")
 	cmd.Flags().Duration("exec_timeout", 24*time.Hour, "set the task exec command expire time")
 
-	cmd.PersistentFlags().String("node_name", "dagflow01", "node name")
+	cmd.Flags().String("node_name", "dagflow01", "node name")
 	cmd.Flags().Int("pool_size", runtime.NumCPU()*2, "set the size of the execution work pool.")
 	return cmd
 }
