@@ -473,102 +473,6 @@
                 }
             }
         },
-        "/api/v1/pool": {
-            "get": {
-                "description": "获取工作池信息",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "工作池"
-                ],
-                "summary": "详情, 支持SSE订阅",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SPoolRes"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "description": "设置工作池大小",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "工作池"
-                ],
-                "summary": "设置",
-                "parameters": [
-                    {
-                        "description": "pool setting",
-                        "name": "setting",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/types.SPoolReq"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SPoolReq"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
-                    }
-                }
-            }
-        },
-        "/api/v1/pty": {
-            "get": {
-                "description": "Websocket的pty终端",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "终端"
-                ],
-                "summary": "PTY",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
-                    }
-                }
-            }
-        },
         "/api/v1/task": {
             "get": {
                 "description": "获取任务列表, 支持WS长连接",
@@ -1200,12 +1104,16 @@
         "time.Duration": {
             "type": "integer",
             "enum": [
+                -9223372036854775808,
+                9223372036854775807,
                 1,
                 1000,
                 1000000,
                 1000000000,
                 60000000000,
                 3600000000000,
+                -9223372036854775808,
+                9223372036854775807,
                 1,
                 1000,
                 1000000,
@@ -1214,12 +1122,16 @@
                 3600000000000
             ],
             "x-enum-varnames": [
+                "minDuration",
+                "maxDuration",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
                 "Second",
                 "Minute",
                 "Hour",
+                "minDuration",
+                "maxDuration",
                 "Nanosecond",
                 "Microsecond",
                 "Millisecond",
@@ -1357,40 +1269,6 @@
                 },
                 "data": {
                     "$ref": "#/definitions/types.SPipelineRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SPoolReq": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SPoolReq"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SPoolRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SPoolRes"
                 },
                 "message": {
                     "type": "string"
@@ -1738,34 +1616,6 @@
                 "tplType": {
                     "type": "string",
                     "example": "jinja2"
-                }
-            }
-        },
-        "types.SPoolReq": {
-            "type": "object",
-            "required": [
-                "size"
-            ],
-            "properties": {
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SPoolRes": {
-            "type": "object",
-            "properties": {
-                "running": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                },
-                "waiting": {
-                    "type": "integer"
                 }
             }
         },

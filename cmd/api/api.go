@@ -12,10 +12,10 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
-	"github.com/busyster996/dagflow/config"
+	"github.com/busyster996/dagflow/internal/config"
+	"github.com/busyster996/dagflow/internal/server"
+	"github.com/busyster996/dagflow/internal/utils"
 	"github.com/busyster996/dagflow/pkg/logx"
-	"github.com/busyster996/dagflow/server"
-	"github.com/busyster996/dagflow/utils"
 )
 
 func New() *cobra.Command {

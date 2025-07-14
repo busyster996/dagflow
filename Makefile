@@ -10,7 +10,7 @@ dev: # generate
 	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath,dagflow.allfeatures" -o bin/dagflow cmd/main.go
 
 swag:
-	@swag init --exclude pkg --parseDependencyLevel 3 --dir server/api --outputTypes json -g router.go
+	@swag init --exclude pkg --parseDependencyLevel 3 --dir internal/server/api --outputTypes json -g router.go
 
 # Run code generation
 generate:

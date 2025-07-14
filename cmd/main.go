@@ -12,9 +12,9 @@ import (
 	"github.com/busyster996/dagflow/cmd/api"
 	"github.com/busyster996/dagflow/cmd/standalone"
 	"github.com/busyster996/dagflow/cmd/worker"
+	"github.com/busyster996/dagflow/internal/utils"
 	"github.com/busyster996/dagflow/pkg/info"
 	"github.com/busyster996/dagflow/pkg/logx"
-	"github.com/busyster996/dagflow/utils"
 )
 
 const longText = `An API for cross-platform custom orchestration of execution steps without any third-party dependencies. 
