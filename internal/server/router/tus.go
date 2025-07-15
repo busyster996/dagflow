@@ -1,4 +1,4 @@
-package tus
+package router
 
 import (
 	"context"
@@ -19,9 +19,9 @@ import (
 	"github.com/busyster996/dagflow/pkg/tus/types"
 )
 
-var TunServer *tus.STusx
+var tunServer *tus.STusx
 
-func Init(uploadDir, basePath string, gdb *gorm.DB) error {
+func newTusSvr(uploadDir, basePath string, gdb *gorm.DB) error {
 	var locker = filelocker.New(filepath.Join(uploadDir, ".lock"))
 	store, err := filestore.New(filepath.Join(os.TempDir(), ".tusd"), gdb, locker)
 	if err != nil {
@@ -29,7 +29,7 @@ func Init(uploadDir, basePath string, gdb *gorm.DB) error {
 		return err
 	}
 	store.Cleanup(context.Background(), 1*time.Hour)
-	TunServer, err = tus.New(&tus.SConfig{
+	tunServer, err = tus.New(&tus.SConfig{
 		BasePath: basePath,
 		Store:    store,
 		Logger:   logx.GetSubLogger(),
@@ -86,7 +86,7 @@ func Init(uploadDir, basePath string, gdb *gorm.DB) error {
 }
 
 func Shutdown(ctx context.Context) {
-	if TunServer != nil {
-		_ = TunServer.Close(ctx)
+	if tunServer != nil {
+		_ = tunServer.Close(ctx)
 	}
 }

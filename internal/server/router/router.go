@@ -1,22 +1,27 @@
-package api
+package router
 
 import (
+	"path"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 
-	"github.com/busyster996/dagflow/internal/server/api/base"
-	"github.com/busyster996/dagflow/internal/server/api/middleware/zap"
+	"github.com/busyster996/dagflow/internal/server/api"
 	"github.com/busyster996/dagflow/internal/server/api/v1/event"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline/build"
 	"github.com/busyster996/dagflow/internal/server/api/v1/task"
 	"github.com/busyster996/dagflow/internal/server/api/v1/task/step"
 	"github.com/busyster996/dagflow/internal/server/api/v1/task/workspace"
+	"github.com/busyster996/dagflow/internal/server/router/base"
+	"github.com/busyster996/dagflow/internal/server/router/middleware/zap"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/pkg/info"
+	"github.com/busyster996/dagflow/pkg/logx"
 )
 
 // New
@@ -34,7 +39,7 @@ import (
 // @contact.url		https://github.com/busyster996/dagflow/issues
 // @license.name	GPL-3.0
 // @license.url		https://github.com/busyster996/dagflow/blob/main/LICENSE
-func New() (*gin.Engine, error) {
+func New(gdb *gorm.DB, uploadDir string) (*gin.Engine, error) {
 	router := gin.New()
 	router.Use(
 		zap.Logger,
@@ -51,12 +56,13 @@ func New() (*gin.Engine, error) {
 	// debug pprof
 	pprof.Register(router)
 	// base
-	router.GET("/version", version)
-	router.GET("/healthyz", healthyz)
-	router.GET("/heartbeat", heartbeat)
-	router.HEAD("/heartbeat", heartbeat)
+	router.GET("/version", api.Version)
+	router.GET("/healthyz", api.Healthyz)
+	router.GET("/heartbeat", api.Heartbeat)
+	router.HEAD("/heartbeat", api.Heartbeat)
 	// swagger
 	//router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
+
 	apiV1 := router.Group("/api/v1")
 	// V1
 	{
@@ -95,6 +101,15 @@ func New() (*gin.Engine, error) {
 		apiV1.GET("/task/:task/step/:step", step.Detail)
 		apiV1.PUT("/task/:task/step/:step", step.Manager)
 		apiV1.GET("/task/:task/step/:step/log", step.Log)
+
+		// tus file server
+		if err := newTusSvr(uploadDir, path.Join(apiV1.BasePath(), "/files/"), gdb); err != nil {
+			logx.Errorln(err)
+			return nil, err
+		}
+
+		apiV1.Any("/files", gin.WrapH(tunServer))
+		apiV1.Any("/files/*any", gin.WrapH(tunServer))
 	}
 
 	// no method

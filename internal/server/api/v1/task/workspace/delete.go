@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
-	"github.com/busyster996/dagflow/internal/server/api/base"
+	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/internal/utils"
 	"github.com/busyster996/dagflow/pkg/logx"

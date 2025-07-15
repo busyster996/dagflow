@@ -5,12 +5,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/busyster996/dagflow/internal/server/api/base"
+	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/pkg/info"
 )
 
-// version
+// Version
 // @Summary		版本
 // @Description	获取版本信息
 // @Tags		默认
@@ -19,7 +19,7 @@ import (
 // @Success		200 {object} types.SBase[types.SVersion]
 // @Failure		500 {object} types.SBase[any]
 // @Router		/version [get]
-func version(c *gin.Context) {
+func Version(c *gin.Context) {
 	base.Send(c, base.WithData(&types.SVersion{
 		Version:   info.Version,
 		BuildTime: info.BuildTime,

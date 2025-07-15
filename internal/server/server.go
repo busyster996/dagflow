@@ -14,8 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
-	"github.com/busyster996/dagflow/internal/server/api"
-	"github.com/busyster996/dagflow/internal/server/tus"
+	"github.com/busyster996/dagflow/internal/server/router"
 	"github.com/busyster996/dagflow/internal/utils"
 	"github.com/busyster996/dagflow/pkg/listeners"
 	"github.com/busyster996/dagflow/pkg/logx"
@@ -59,19 +58,11 @@ func Start(ctx context.Context, db *gorm.DB, addr, relativePath, workspace strin
 func (p *sServer) startServer(db *gorm.DB, addr, workspace string, relativePath string) error {
 	gin.DisableConsoleColor()
 	gin.SetMode(gin.ReleaseMode)
-	handler, err := api.New()
+	handler, err := router.New(db, workspace)
 	if err != nil {
 		logx.Errorln(err)
 		return err
 	}
-
-	// files
-	if err = tus.Init(workspace, "/api/v1/files/", db); err != nil {
-		logx.Errorln(err)
-		return err
-	}
-	handler.Any("/api/v1/files", gin.WrapH(tus.TunServer))
-	handler.Any("/api/v1/files/*any", gin.WrapH(tus.TunServer))
 
 	p.http = &http.Server{
 		Handler:           http.StripPrefix(relativePath, handler),
@@ -145,7 +136,7 @@ func (p *sServer) close() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	tus.Shutdown(ctx)
+	router.Shutdown(ctx)
 
 	// close http server
 	if p.http != nil {

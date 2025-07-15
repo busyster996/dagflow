@@ -10,7 +10,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 
-	"github.com/busyster996/dagflow/internal/server/api/base"
+	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/service"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/pkg/logx"
