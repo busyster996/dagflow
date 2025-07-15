@@ -235,6 +235,7 @@ func (t *sTask) Stop() {
 	for _, step := range t.dagTasks {
 		stepManager.Delete(step.Name())
 	}
+	t.clearDir()
 }
 
 func (t *sTask) initDir() error {
