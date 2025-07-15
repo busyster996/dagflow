@@ -14,7 +14,7 @@ import (
 	"github.com/busyster996/dagflow/internal/utils"
 	"github.com/busyster996/dagflow/internal/worker/common"
 	"github.com/busyster996/dagflow/internal/worker/event"
-	"github.com/busyster996/dagflow/pkg/dag"
+	"github.com/busyster996/dagflow/pkg/dagcuter"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -32,7 +32,7 @@ type sTask struct {
 	taskName  string
 	workspace string
 	scriptDir string
-	dagTasks  map[string]dag.Task
+	dagTasks  map[string]dagcuter.Task
 	state     int32 // 0: 正常, 1: 挂起
 }
 
@@ -40,7 +40,7 @@ func newTask(taskName string, workerSpace, scriptDir string) (*sTask, error) {
 	t := &sTask{
 		stg:       storage.Task(taskName),
 		taskName:  taskName,
-		dagTasks:  make(map[string]dag.Task),
+		dagTasks:  make(map[string]dagcuter.Task),
 		workspace: filepath.Join(workerSpace, taskName),
 		scriptDir: filepath.Join(scriptDir, taskName),
 	}
@@ -101,7 +101,7 @@ func newTask(taskName string, workerSpace, scriptDir string) (*sTask, error) {
 		}
 		t.dagTasks[s.Name] = t.newStep(s.Name)
 	}
-	if dag.HasCycle(t.dagTasks) {
+	if dagcuter.HasCycle(t.dagTasks) {
 		err = errors.New("the task has a cycle")
 		return nil, err
 	}
@@ -173,7 +173,7 @@ func (t *sTask) Execute() (err error) {
 	}
 	defer cancel()
 
-	_dag, err := dag.New(t.dagTasks)
+	_dag, err := dagcuter.New(t.dagTasks)
 	if err != nil {
 		logx.Errorln(t.taskName, err)
 		return

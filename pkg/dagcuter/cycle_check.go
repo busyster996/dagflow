@@ -1,4 +1,4 @@
-package dag
+package dagcuter
 
 func HasCycle(tasks map[string]Task) bool {
 	visited := make(map[string]bool)

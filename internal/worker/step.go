@@ -15,7 +15,7 @@ import (
 	"github.com/busyster996/dagflow/internal/worker/common"
 	"github.com/busyster996/dagflow/internal/worker/event"
 	"github.com/busyster996/dagflow/internal/worker/runner"
-	"github.com/busyster996/dagflow/pkg/dag"
+	"github.com/busyster996/dagflow/pkg/dagcuter"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -45,13 +45,13 @@ func (s *sStep) Dependencies() []string {
 	return s.stg.Depend().List()
 }
 
-func (s *sStep) RetryPolicy() *dag.RetryPolicy {
+func (s *sStep) RetryPolicy() *dagcuter.RetryPolicy {
 	retryPolicy, err := s.stg.RetryPolicy()
 	if err != nil {
 		logx.Errorln(s.taskName, s.stepName, "RetryPolicy error:", err)
 		return nil
 	}
-	return &dag.RetryPolicy{
+	return &dagcuter.RetryPolicy{
 		Interval:    retryPolicy.Interval,
 		MaxAttempts: retryPolicy.MaxAttempts,
 		MaxInterval: retryPolicy.MaxInterval,
