@@ -1,4 +1,4 @@
-package api
+package router
 
 import (
 	"runtime"
@@ -10,7 +10,7 @@ import (
 	"github.com/busyster996/dagflow/pkg/info"
 )
 
-// Version
+// version
 // @Summary		版本
 // @Description	获取版本信息
 // @Tags		默认
@@ -19,7 +19,7 @@ import (
 // @Success		200 {object} types.SBase[types.SVersion]
 // @Failure		500 {object} types.SBase[any]
 // @Router		/version [get]
-func Version(c *gin.Context) {
+func version(c *gin.Context) {
 	base.Send(c, base.WithData(&types.SVersion{
 		Version:   info.Version,
 		BuildTime: info.BuildTime,

@@ -1,4 +1,4 @@
-package api
+package router
 
 import (
 	"github.com/gin-gonic/gin"
@@ -7,7 +7,7 @@ import (
 	"github.com/busyster996/dagflow/internal/server/types"
 )
 
-// Healthyz
+// healthyz
 // @Summary		健康
 // @Description 用于检测服务是否正常
 // @Tags		默认
@@ -16,7 +16,7 @@ import (
 // @Success		200 {object} types.SBase[types.SHealthyz]
 // @Failure		500 {object} types.SBase[any]
 // @Router		/healthyz [get]
-func Healthyz(c *gin.Context) {
+func healthyz(c *gin.Context) {
 	base.Send(c, base.WithData(&types.SHealthyz{
 		Server: c.Request.Host,
 		Client: c.Request.RemoteAddr,

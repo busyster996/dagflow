@@ -10,7 +10,6 @@ import (
 	"github.com/pkg/errors"
 	"gorm.io/gorm"
 
-	"github.com/busyster996/dagflow/internal/server/api"
 	"github.com/busyster996/dagflow/internal/server/api/v1/event"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline/build"
@@ -56,10 +55,10 @@ func New(gdb *gorm.DB, uploadDir string) (*gin.Engine, error) {
 	// debug pprof
 	pprof.Register(router)
 	// base
-	router.GET("/version", api.Version)
-	router.GET("/healthyz", api.Healthyz)
-	router.GET("/heartbeat", api.Heartbeat)
-	router.HEAD("/heartbeat", api.Heartbeat)
+	router.GET("/version", version)
+	router.GET("/healthyz", healthyz)
+	router.GET("/heartbeat", heartbeat)
+	router.HEAD("/heartbeat", heartbeat)
 	// swagger
 	//router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 

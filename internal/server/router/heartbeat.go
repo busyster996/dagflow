@@ -1,4 +1,4 @@
-package api
+package router
 
 import (
 	"net/http"
@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Heartbeat
+// heartbeat
 // @Summary		心跳
 // @Description	用于判断服务是否正常
 // @Tags		默认
@@ -15,6 +15,6 @@ import (
 // @Success		200 {object} string
 // @Failure		500 {object} string
 // @Router		/heartbeat [get]
-func Heartbeat(c *gin.Context) {
+func heartbeat(c *gin.Context) {
 	c.AbortWithStatus(http.StatusOK)
 }
