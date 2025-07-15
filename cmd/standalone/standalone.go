@@ -80,7 +80,7 @@ func (a *standaloneService) Start(s service.Service) error {
 	if err := worker.Start(
 		a.ctx,
 		viper.GetString("node_name"),
-		viper.GetString("work_space"),
+		viper.GetString("workspace_dir"),
 		viper.GetString("script_dir"),
 	); err != nil {
 		return err
@@ -90,7 +90,7 @@ func (a *standaloneService) Start(s service.Service) error {
 		config.GetGormDB(),
 		viper.GetString("addr"),
 		viper.GetString("relative_path"),
-		viper.GetString("work_space"),
+		viper.GetString("workspace_dir"),
 	)
 }
 

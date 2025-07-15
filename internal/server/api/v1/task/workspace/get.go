@@ -35,7 +35,7 @@ func Get(c *gin.Context) {
 		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("task does not exist")))
 		return
 	}
-	prefix := filepath.Join(viper.GetString("work_space"), taskName)
+	prefix := filepath.Join(viper.GetString("workspace_dir"), taskName)
 	if !utils.FileOrPathExist(prefix) {
 		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("task does not exist")))
 		return

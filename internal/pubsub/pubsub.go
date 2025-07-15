@@ -37,16 +37,16 @@ func New(rawURL string) error {
 	return nil
 }
 
-func PublishTask(name string, data string) error {
-	return broker.PublishTask(name, data)
+func PublishTask(node string, data string) error {
+	return broker.PublishTask(node, data)
 }
 
-func PublishTaskDelayed(name string, data string, delay time.Duration) error {
-	return broker.PublishTaskDelayed(name, data, delay)
+func PublishTaskDelayed(node string, data string, delay time.Duration) error {
+	return broker.PublishTaskDelayed(node, data, delay)
 }
 
-func SubscribeTask(ctx context.Context, name string, handler common.HandleFn) error {
-	return broker.SubscribeTask(ctx, name, handler)
+func SubscribeTask(ctx context.Context, node string, handler common.HandleFn) error {
+	return broker.SubscribeTask(ctx, node, handler)
 }
 
 func PublishEvent(data string) error {

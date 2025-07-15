@@ -82,7 +82,7 @@ func (w *workerService) Start(s service.Service) error {
 	return worker.Start(
 		w.ctx,
 		viper.GetString("node_name"),
-		viper.GetString("work_space"),
+		viper.GetString("workspace_dir"),
 		viper.GetString("script_dir"),
 	)
 }

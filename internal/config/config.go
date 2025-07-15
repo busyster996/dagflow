@@ -34,7 +34,7 @@ var db *gorm.DB
 func Init() error {
 	viper.Set("log_dir", filepath.Join(viper.GetString("root_dir"), "logs"))
 	viper.Set("script_dir", filepath.Join(viper.GetString("root_dir"), "scripts"))
-	viper.Set("work_space", filepath.Join(viper.GetString("root_dir"), "workspace"))
+	viper.Set("workspace_dir", filepath.Join(viper.GetString("root_dir"), "workspace"))
 	if viper.GetString("node_name") == "" {
 		viper.Set("node_name", fmt.Sprintf("%d-%d", viper.GetInt64("kind_id"), viper.GetInt64("node_id")))
 	}
@@ -54,9 +54,9 @@ func Init() error {
 
 	var dirs = map[string]string{
 		"root":      viper.GetString("root_dir"),
-		"script":    viper.GetString("script_dir"),
 		"log":       viper.GetString("log_dir"),
-		"workspace": viper.GetString("work_space"),
+		"script":    viper.GetString("script_dir"),
+		"workspace": viper.GetString("workspace_dir"),
 	}
 
 	for name, dir := range dirs {

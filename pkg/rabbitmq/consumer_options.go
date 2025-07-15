@@ -150,7 +150,12 @@ func WithConsumerOptionsQueueNoDeclare(options *ConsumerOptions) {
 // WithConsumerOptionsQueueArgs adds optional args to the queue
 func WithConsumerOptionsQueueArgs(args Table) func(*ConsumerOptions) {
 	return func(options *ConsumerOptions) {
-		options.QueueOptions.Args = args
+		if options.QueueOptions.Args == nil {
+			options.QueueOptions.Args = make(Table)
+		}
+		for k, v := range args {
+			options.QueueOptions.Args[k] = v
+		}
 	}
 }
 
@@ -216,7 +221,12 @@ func WithConsumerOptionsExchangePassive(options *ConsumerOptions) {
 func WithConsumerOptionsExchangeArgs(args Table) func(*ConsumerOptions) {
 	return func(options *ConsumerOptions) {
 		ensureExchangeOptions(options)
-		options.ExchangeOptions[0].Args = args
+		if options.ExchangeOptions[0].Args == nil {
+			options.ExchangeOptions[0].Args = make(Table)
+		}
+		for k, v := range args {
+			options.ExchangeOptions[0].Args[k] = v
+		}
 	}
 }
 

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/rabbitmq/amqp091-go"
+	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 
 	"github.com/busyster996/dagflow/internal/pubsub/common"
@@ -69,7 +70,7 @@ func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.H
 	defer a.mu.Unlock()
 	if _, ok := a.consumerMap[qname]; !ok {
 		var err error
-		a.consumerMap[qname], err = a.newDirectConsumer(qname, func(data string) {
+		a.consumerMap[qname], err = a.newDirectConsumer(qname, false, func(data string) {
 			d.(*common.SMemDirect).Publish(data)
 		})
 		if err != nil {
@@ -91,9 +92,9 @@ func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) err
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if _, ok := a.consumerMap[rkey]; !ok {
-		qname := queue.EventRoutingKey()
+		qname := fmt.Sprintf("%s.%s", queue.EventRoutingKey(), ksuid.New().String())
 		var err error
-		a.consumerMap[rkey], err = a.newTopicConsumer(rkey, qname, func(data string) {
+		a.consumerMap[rkey], err = a.newTopicConsumer(rkey, qname, true, func(data string) {
 			t.(*common.SMemTopic).Publish(data)
 		})
 		if err != nil {
@@ -117,7 +118,7 @@ func (a *sAmqp) SubscribeManager(ctx context.Context, node string, handler commo
 	if _, ok := a.consumerMap[rkey]; !ok {
 		qname := fmt.Sprintf("%s.%s", queue.ManagerRoutingKey(), node)
 		var err error
-		a.consumerMap[rkey], err = a.newTopicConsumer(rkey, qname, func(data string) {
+		a.consumerMap[rkey], err = a.newTopicConsumer(rkey, qname, false, func(data string) {
 			t.(*common.SMemTopic).Publish(data)
 		})
 		if err != nil {
@@ -247,17 +248,16 @@ func (a *sAmqp) newPublisher(kind, ename string) (*rabbitmq.Publisher, error) {
 	)
 }
 
-func (a *sAmqp) newDirectConsumer(qname string, handle common.HandleFn) (*rabbitmq.Consumer, error) {
-	return a.newConsumer(amqp091.ExchangeDirect, a.directExchangeName(), qname, qname, handle)
+func (a *sAmqp) newDirectConsumer(qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
+	return a.newConsumer(amqp091.ExchangeDirect, a.directExchangeName(), qname, qname, autoDel, handle)
 }
 
-func (a *sAmqp) newTopicConsumer(rkey, qname string, handle common.HandleFn) (*rabbitmq.Consumer, error) {
-	return a.newConsumer(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, qname, handle)
+func (a *sAmqp) newTopicConsumer(rkey, qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
+	return a.newConsumer(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, qname, autoDel, handle)
 }
 
-func (a *sAmqp) newConsumer(kind, ename, rkey, qname string, handle common.HandleFn) (*rabbitmq.Consumer, error) {
-	consumer, err := rabbitmq.NewConsumer(
-		a.conn, qname,
+func (a *sAmqp) newConsumer(kind, ename, rkey, qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
+	ops := []func(*rabbitmq.ConsumerOptions){
 		rabbitmq.WithConsumerOptionsLogger(logx.GetSubLoggerWithOption(zap.AddCallerSkip(-1))), // 日志
 		rabbitmq.WithConsumerOptionsExchangeName(ename),                                        // 交换机名称
 		rabbitmq.WithConsumerOptionsRoutingKey(rkey),                                           // routing key
@@ -266,7 +266,13 @@ func (a *sAmqp) newConsumer(kind, ename, rkey, qname string, handle common.Handl
 		rabbitmq.WithConsumerOptionsExchangeDurable,                                            // 交换机持久化
 		rabbitmq.WithConsumerOptionsQueueDurable,                                               // 队列持久化
 		rabbitmq.WithConsumerOptionsQueueQuorum,                                                // 使用仲裁队列
-	)
+	}
+	if autoDel {
+		ops = append(ops, rabbitmq.WithConsumerOptionsQueueArgs(rabbitmq.Table{
+			"x-expires": 60000, // 队列过期时间, 单位毫秒
+		}))
+	}
+	consumer, err := rabbitmq.NewConsumer(a.conn, qname, ops...)
 	if err != nil {
 		return nil, err
 	}

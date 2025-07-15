@@ -90,7 +90,12 @@ func WithPublisherOptionsExchangePassive(options *PublisherOptions) {
 // WithPublisherOptionsExchangeArgs adds optional args to the exchange
 func WithPublisherOptionsExchangeArgs(args Table) func(*PublisherOptions) {
 	return func(options *PublisherOptions) {
-		options.ExchangeOptions.Args = args
+		if options.ExchangeOptions.Args == nil {
+			options.ExchangeOptions.Args = make(Table)
+		}
+		for k, v := range args {
+			options.ExchangeOptions.Args[k] = v
+		}
 	}
 }
 
