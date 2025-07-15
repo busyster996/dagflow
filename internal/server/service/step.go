@@ -6,13 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
 	"gorm.io/datatypes"
 
 	"github.com/busyster996/dagflow/internal/pubsub"
-	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
@@ -257,9 +255,10 @@ func (ss *SStepService) log(latestLine *int64) (res types.SStepLogsRes, done boo
 	return
 }
 
-type stateHandlerFn func(ws *websocket.Conn, latest *int64) (bool, error)
+type outputFn func(code types.Code, data types.SStepLogsRes, err error) error
+type stateHandlerFn func(output outputFn, latest *int64) (bool, error)
 
-func (ss *SStepService) LogStream(ctx context.Context, ws *websocket.Conn) error {
+func (ss *SStepService) LogStream(ctx context.Context, output outputFn) error {
 	db := storage.Task(ss.taskName).Step(ss.stepName)
 	step, err := db.Get()
 	if err != nil {
@@ -298,7 +297,7 @@ func (ss *SStepService) LogStream(ctx context.Context, ws *websocket.Conn) error
 
 		if handler, exists := handlers[*step.State]; exists {
 			var shouldContinue bool
-			shouldContinue, err = handler(ws, &latestLine)
+			shouldContinue, err = handler(output, &latestLine)
 			if err != nil {
 				logx.Errorln("step logstream", ss.taskName, ss.stepName, err)
 				return err
@@ -320,23 +319,23 @@ func (ss *SStepService) LogStream(ctx context.Context, ws *websocket.Conn) error
 }
 
 func (ss *SStepService) createOnceHandler(once *sync.Once, code types.Code, message string) stateHandlerFn {
-	return func(ws *websocket.Conn, latest *int64) (bool, error) {
+	return func(output outputFn, latest *int64) (bool, error) {
 		once.Do(func() {
-			_ = ws.WriteJSON(base.WithData([]types.SStepLogRes{
+			_ = output(code, types.SStepLogsRes{
 				{
 					Timestamp: time.Now().UnixNano(),
 					Line:      1,
 					Content:   message,
 				},
-			}).WithCode(code))
+			}, nil)
 		})
 		return true, nil
 	}
 }
 
-func (ss *SStepService) handleRunningState(ws *websocket.Conn, latestLine *int64) (bool, error) {
+func (ss *SStepService) handleRunningState(output outputFn, latestLine *int64) (bool, error) {
 	res, done := ss.log(latestLine)
-	err := ws.WriteJSON(base.WithData(res).WithCode(types.CodeRunning).WithError(errors.New("in progress")))
+	err := output(types.CodeRunning, res, errors.New("in progress"))
 	if err != nil {
 		logx.Errorln("step logstream", ss.taskName, ss.stepName, err)
 		return false, err
@@ -348,7 +347,7 @@ func (ss *SStepService) handleRunningState(ws *websocket.Conn, latestLine *int64
 }
 
 func (ss *SStepService) handleFinalState(code types.Code) stateHandlerFn {
-	return func(ws *websocket.Conn, latestLine *int64) (bool, error) {
+	return func(output outputFn, latestLine *int64) (bool, error) {
 		db := storage.Task(ss.taskName).Step(ss.stepName)
 		step, err := db.Get()
 		if err != nil {
@@ -363,7 +362,7 @@ func (ss *SStepService) handleFinalState(code types.Code) stateHandlerFn {
 				errMsg = errors.New(step.Message)
 			}
 		}
-		err = ws.WriteJSON(base.WithData(res).WithCode(code).WithError(errMsg))
+		err = output(code, res, errMsg)
 		if err != nil {
 			logx.Errorln("step logstream", ss.taskName, ss.stepName, err)
 			return false, err

@@ -54,7 +54,9 @@ func Log(c *gin.Context) {
 			}
 		}()
 		defer base.CloseWs(ws, "Server is shutting down")
-		err := service.Step(taskName, stepName).LogStream(ctx, ws)
+		err := service.Step(taskName, stepName).LogStream(ctx, func(code types.Code, data types.SStepLogsRes, err error) error {
+			return ws.WriteJSON(base.WithData(data).WithCode(code).WithError(err))
+		})
 		if err != nil {
 			_ = ws.WriteJSON(base.WithCode[any](types.CodeFailed).WithError(err))
 		}
