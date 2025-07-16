@@ -4,6 +4,7 @@ package worker
 
 import (
 	_ "github.com/busyster996/dagflow/internal/worker/runner/docker"
+	_ "github.com/busyster996/dagflow/internal/worker/runner/git"
 	_ "github.com/busyster996/dagflow/internal/worker/runner/kubectl"
 	_ "github.com/busyster996/dagflow/internal/worker/runner/lua"
 	_ "github.com/busyster996/dagflow/internal/worker/runner/scp"
