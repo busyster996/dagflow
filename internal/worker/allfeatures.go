@@ -10,6 +10,7 @@ import (
 	_ "github.com/busyster996/dagflow/internal/worker/runner/scp"
 	_ "github.com/busyster996/dagflow/internal/worker/runner/sftp"
 	_ "github.com/busyster996/dagflow/internal/worker/runner/ssh"
+	_ "github.com/busyster996/dagflow/internal/worker/runner/svn"
 	_ "github.com/busyster996/dagflow/internal/worker/runner/wasm"
 	_ "github.com/busyster996/dagflow/internal/worker/runner/yaegi"
 )
