@@ -1,4 +1,4 @@
-package router
+package files
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
 	"gorm.io/gorm"
@@ -21,7 +22,11 @@ import (
 
 var tunServer *tus.STusx
 
-func newTusSvr(uploadDir, basePath string, gdb *gorm.DB) error {
+func New(uploadDir, basePath string, gdb *gorm.DB) error {
+	if tunServer != nil {
+		logx.Errorln("tus server already started")
+		return nil
+	}
 	var locker = filelocker.New(filepath.Join(uploadDir, ".lock"))
 	store, err := filestore.New(filepath.Join(os.TempDir(), ".tusd"), gdb, locker)
 	if err != nil {
@@ -85,8 +90,6 @@ func newTusSvr(uploadDir, basePath string, gdb *gorm.DB) error {
 	return nil
 }
 
-func Shutdown(ctx context.Context) {
-	if tunServer != nil {
-		_ = tunServer.Close(ctx)
-	}
+func Handler() gin.HandlerFunc {
+	return gin.WrapH(tunServer)
 }

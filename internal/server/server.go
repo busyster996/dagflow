@@ -136,8 +136,6 @@ func (p *sServer) close() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer cancel()
 
-	router.Shutdown(ctx)
-
 	// close http server
 	if p.http != nil {
 		_ = p.http.Shutdown(ctx)

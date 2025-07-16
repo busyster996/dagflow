@@ -11,6 +11,7 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/busyster996/dagflow/internal/server/api/v1/event"
+	"github.com/busyster996/dagflow/internal/server/api/v1/files"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline/build"
 	"github.com/busyster996/dagflow/internal/server/api/v1/task"
@@ -102,13 +103,13 @@ func New(gdb *gorm.DB, uploadDir string) (*gin.Engine, error) {
 		apiV1.GET("/task/:task/step/:step/log", step.Log)
 
 		// tus file server
-		if err := newTusSvr(uploadDir, path.Join(apiV1.BasePath(), "/files/"), gdb); err != nil {
+		if err := files.New(uploadDir, path.Join(apiV1.BasePath(), "/files/"), gdb); err != nil {
 			logx.Errorln(err)
 			return nil, err
 		}
 
-		apiV1.Any("/files", gin.WrapH(tunServer))
-		apiV1.Any("/files/*any", gin.WrapH(tunServer))
+		apiV1.Any("/files", files.Handler())
+		apiV1.Any("/files/*any", files.Handler())
 	}
 
 	// no method
