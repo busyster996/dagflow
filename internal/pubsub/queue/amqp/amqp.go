@@ -18,8 +18,7 @@ import (
 )
 
 type sAmqp struct {
-	conn    *rabbitmq.Conn
-	channel *rabbitmq.Channel
+	conn *rabbitmq.Conn
 	// 防止相同生产者重复创建
 	publisherMap map[string]*rabbitmq.Publisher
 	// 防止相同消费者重复创建
@@ -39,28 +38,36 @@ func (a *sAmqp) topicExchangeName() string {
 
 func (a *sAmqp) PublishTask(node string, data string) error {
 	rkey := fmt.Sprintf("%s.%s", queue.TaskRoutingKey(), node)
-	return a.publishDirect(rkey, data)
+	return a.publish(amqp091.ExchangeDirect, a.directExchangeName(), rkey, data, "")
 }
 
 func (a *sAmqp) PublishTaskDelayed(node string, data string, delay time.Duration) error {
 	rkey := fmt.Sprintf("%s.%s", queue.TaskRoutingKey(), node)
 	delayedQueue := rkey + ".delayed"
-	_, err := a.channel.QueueDeclareSafe(
-		delayedQueue, true, false, false, false,
-		amqp091.Table{
-			"x-dead-letter-exchange":    a.directExchangeName(),
-			"x-dead-letter-routing-key": rkey,
-		})
-	if err != nil {
-		logx.Errorln(err)
-		return err
+	if a.publisherMap[delayedQueue] == nil {
+		channel, err := rabbitmq.NewChannel(a.conn, rabbitmq.WithChannelOptionsLogger(logx.GetSubLogger()))
+		if err != nil {
+			logx.Errorln(err)
+			return err
+		}
+		defer channel.Close()
+		if _, err = channel.QueueDeclareSafe(
+			delayedQueue, true, false, false, false,
+			amqp091.Table{
+				"x-dead-letter-exchange":    a.directExchangeName(),
+				"x-dead-letter-routing-key": rkey,
+			}); err != nil {
+			logx.Errorln(err)
+			return err
+		}
+		err = channel.QueueBindSafe(delayedQueue, delayedQueue, a.directExchangeName(), false, amqp091.Table{})
+		if err != nil {
+			logx.Errorln(err)
+			return err
+		}
 	}
-	err = a.channel.QueueBindSafe(delayedQueue, delayedQueue, a.directExchangeName(), false, amqp091.Table{})
-	if err != nil {
-		logx.Errorln(err)
-		return err
-	}
-	return a.publish(a.directExchangeName(), delayedQueue, data, fmt.Sprintf("%.f", delay.Seconds()))
+
+	return a.publish(amqp091.ExchangeDirect, a.directExchangeName(), delayedQueue, data, fmt.Sprintf("%.f", delay.Seconds()))
 }
 
 func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.HandleFn) error {
@@ -70,7 +77,7 @@ func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.H
 	defer a.mu.Unlock()
 	if _, ok := a.consumerMap[qname]; !ok {
 		var err error
-		a.consumerMap[qname], err = a.newDirectConsumer(qname, false, func(data string) {
+		a.consumerMap[qname], err = a.newConsumer(amqp091.ExchangeDirect, a.directExchangeName(), qname, qname, false, func(data string) {
 			d.(*common.SMemDirect).Publish(data)
 		})
 		if err != nil {
@@ -83,7 +90,7 @@ func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.H
 
 func (a *sAmqp) PublishEvent(data string) error {
 	rkey := fmt.Sprintf("%s.*", queue.EventRoutingKey())
-	return a.publishTopic(rkey, data)
+	return a.publish(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, data, "")
 }
 
 func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) error {
@@ -94,7 +101,7 @@ func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) err
 	if _, ok := a.consumerMap[rkey]; !ok {
 		qname := fmt.Sprintf("%s.%s", queue.EventRoutingKey(), ksuid.New().String())
 		var err error
-		a.consumerMap[rkey], err = a.newTopicConsumer(rkey, qname, true, func(data string) {
+		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, qname, true, func(data string) {
 			t.(*common.SMemTopic).Publish(data)
 		})
 		if err != nil {
@@ -107,7 +114,7 @@ func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) err
 
 func (a *sAmqp) PublishManager(node string, data string) error {
 	routingKey := fmt.Sprintf("%s.%s", queue.ManagerRoutingKey(), node)
-	return a.publishTopic(routingKey, data)
+	return a.publish(amqp091.ExchangeTopic, a.topicExchangeName(), routingKey, data, "")
 }
 
 func (a *sAmqp) SubscribeManager(ctx context.Context, node string, handler common.HandleFn) error {
@@ -118,7 +125,7 @@ func (a *sAmqp) SubscribeManager(ctx context.Context, node string, handler commo
 	if _, ok := a.consumerMap[rkey]; !ok {
 		qname := fmt.Sprintf("%s.%s", queue.ManagerRoutingKey(), node)
 		var err error
-		a.consumerMap[rkey], err = a.newTopicConsumer(rkey, qname, false, func(data string) {
+		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, qname, false, func(data string) {
 			t.(*common.SMemTopic).Publish(data)
 		})
 		if err != nil {
@@ -194,20 +201,17 @@ func (a *sAmqp) subscribe(ctx context.Context, consumer *rabbitmq.Consumer, hand
 	}()
 }
 
-func (a *sAmqp) publishDirect(rkey, data string) error {
-	return a.publish(a.directExchangeName(), rkey, data, "")
-}
-
-func (a *sAmqp) publishTopic(rkey, data string) error {
-	return a.publish(a.topicExchangeName(), rkey, data, "")
-}
-
-func (a *sAmqp) publish(ename, rkey, data, expiration string) error {
+func (a *sAmqp) publish(kind, ename, rkey, data, expiration string) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	publisher, ok := a.publisherMap[ename]
 	if !ok {
-		return fmt.Errorf("exchange %s publisher not found", ename)
+		var err error
+		publisher, err = a.newPublisher(kind, ename)
+		if err != nil {
+			return err
+		}
+		a.publisherMap[ename] = publisher
 	}
 	ops := []func(*rabbitmq.PublishOptions){
 		rabbitmq.WithPublishOptionsExchange(ename),    // 交换机名称
@@ -223,20 +227,6 @@ func (a *sAmqp) publish(ename, rkey, data, expiration string) error {
 	)
 }
 
-func (a *sAmqp) newDirectPublisher() (err error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.publisherMap[a.directExchangeName()], err = a.newPublisher(amqp091.ExchangeDirect, a.directExchangeName())
-	return
-}
-
-func (a *sAmqp) newTopicPublisher() (err error) {
-	a.mu.Lock()
-	defer a.mu.Unlock()
-	a.publisherMap[a.topicExchangeName()], err = a.newPublisher(amqp091.ExchangeTopic, a.topicExchangeName())
-	return
-}
-
 func (a *sAmqp) newPublisher(kind, ename string) (*rabbitmq.Publisher, error) {
 	return rabbitmq.NewPublisher(
 		a.conn,
@@ -246,14 +236,6 @@ func (a *sAmqp) newPublisher(kind, ename string) (*rabbitmq.Publisher, error) {
 		rabbitmq.WithPublisherOptionsExchangeDeclare,                                            // 声明交换机
 		rabbitmq.WithPublisherOptionsExchangeDurable,                                            // 交换机持久化
 	)
-}
-
-func (a *sAmqp) newDirectConsumer(qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
-	return a.newConsumer(amqp091.ExchangeDirect, a.directExchangeName(), qname, qname, autoDel, handle)
-}
-
-func (a *sAmqp) newTopicConsumer(rkey, qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
-	return a.newConsumer(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, qname, autoDel, handle)
 }
 
 func (a *sAmqp) newConsumer(kind, ename, rkey, qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {

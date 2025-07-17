@@ -36,21 +36,6 @@ func init() {
 			return nil, err
 		}
 
-		a.channel, err = rabbitmq.NewChannel(a.conn, rabbitmq.WithChannelOptionsLogger(logx.GetSubLogger()))
-		if err != nil {
-			logx.Errorln(err)
-			return nil, err
-		}
-
-		err = a.newDirectPublisher()
-		if err != nil {
-			return nil, err
-		}
-		err = a.newTopicPublisher()
-		if err != nil {
-			return nil, err
-		}
-
 		return a, nil
 	})
 }
