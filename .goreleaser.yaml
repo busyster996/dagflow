@@ -8,12 +8,37 @@ before:
     - go fmt ./...
 
 builds:
+  - id: dagflow-base
+    main: cmd/main.go
+    flags:
+      - -trimpath
+    tags:
+      - codec.notfastpath
+    ldflags:
+      - -s -w
+      - -X "github.com/busyster996/dagflow/pkg/info.Version={{.Version}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.GitUrl={{.GitURL}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.GitBranch={{.Branch}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.GitCommit={{.FullCommit}}"
+      - -X "github.com/busyster996/dagflow/pkg/info.BuildTime={{.Date}}"
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - "linux"
+      - "windows"
+      - "darwin"
+    goarch:
+      - "386"
+      - "arm64"
+      - "amd64"
+    goamd64:
+      - "v1"
   - id: dagflow
     main: cmd/main.go
     flags:
       - -trimpath
     tags:
-      - dagflow.allfeatures
+      - dagflow.all_runner_features
       - codec.notfastpath
     ldflags:
       - -s -w

@@ -21,6 +21,7 @@ import (
 )
 
 type selfUpdate struct {
+	base     bool
 	sHash    []byte
 	sURL     string
 	cron     *cron.Cron
@@ -114,6 +115,7 @@ func (p *selfUpdate) localSha256sum() {
 		logx.Warnln(err)
 		return
 	}
+	p.base = strings.Contains(path, "base")
 	hash := sha256.New()
 	file, err := os.Open(path)
 	if err != nil {
@@ -159,7 +161,8 @@ func (p *selfUpdate) remoteSha256sum(url string) ([]byte, string) {
 			logx.Warnln(err)
 		}
 		if bytes.Contains(line, []byte(runtime.GOOS)) &&
-			bytes.Contains(line, []byte(runtime.GOARCH)) {
+			bytes.Contains(line, []byte(runtime.GOARCH)) &&
+			bytes.Contains(line, []byte("base")) == p.base {
 			fields := bytes.Fields(line)
 			if len(fields) != 2 {
 				continue

@@ -1,4 +1,4 @@
-//go:build dagflow.allfeatures
+//go:build dagflow.all_runner_features
 
 package worker
 

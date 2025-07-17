@@ -1,5 +1,3 @@
-//go:build dagflow.allfeatures
-
 package pubsub
 
 import (

@@ -1,4 +1,4 @@
-//go:build (windows || linux || darwin) && (amd64 || arm64 || 386) && cgo
+//go:build (windows || linux || darwin) && (amd64 || arm64 || 386)
 
 package main
 
@@ -21,6 +21,7 @@ const longText = `An API for cross-platform custom orchestration of execution st
 Based on DAG, it implements the scheduling function of sequential execution of dependent steps and concurrent execution of non-dependent steps.`
 
 func init() {
+	time.Local = time.UTC
 	viper.SetOptions(
 		viper.KeyDelimiter("::"),
 		viper.ExperimentalBindStruct(),
@@ -28,8 +29,7 @@ func init() {
 }
 
 func main() {
-	time.Local = time.UTC
-	cmd := &cobra.Command{
+	var cmd = &cobra.Command{
 		Use:   os.Args[0],
 		Short: "Operating system remote execution interface",
 		Long:  longText,
@@ -48,7 +48,7 @@ func main() {
 	cmd.SetHelpTemplate(`{{if or .Runnable .HasSubCommands}}{{.UsageString}}{{end}}`)
 	cmd.PersistentFlags().BoolP("help", "h", false, "Print usage")
 	_ = cmd.PersistentFlags().MarkShorthandDeprecated("help", "please use --help")
-	cmd.Flags().BoolP("version", "v", false, "Print version information and quit")
+	cmd.PersistentFlags().BoolP("version", "v", false, "Print version information and quit")
 
 	cmd.PersistentFlags().Int64("node_id", 0, "node id")
 	cmd.PersistentFlags().Int64("kind_id", 0, "kind id")

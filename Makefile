@@ -1,5 +1,5 @@
-PACKAGE_NAME          := github.com/busyster996/dagflow
-GOLANG_CROSS_VERSION  ?= latest
+PACKAGE_NAME	:= github.com/busyster996/dagflow
+GOLANG_VERSION	?= latest
 
 .PHONY: all
 all: binary copy-binary
@@ -7,7 +7,8 @@ all: binary copy-binary
 
 .PHONY: dev
 dev: # generate
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath,dagflow.allfeatures" -o bin/dagflow cmd/main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath" -o bin/dagflow-base cmd/main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath,dagflow.all_runner_features" -o bin/dagflow cmd/main.go
 
 swag:
 	@swag init --exclude pkg --parseDependencyLevel 3 --dir internal/server/router --outputTypes json -g router.go
@@ -30,8 +31,8 @@ binary:
 		-v /var/run/docker.sock:/var/run/docker.sock \
 		-v $(CURDIR):/go/src/$(PACKAGE_NAME) \
 		-w /go/src/$(PACKAGE_NAME) \
-		ghcr.io/goreleaser/goreleaser-cross:${GOLANG_CROSS_VERSION} \
-		release --clean --auto-snapshot --snapshot --skip=chocolatey,docker,homebrew,publish,scoop,validate,winget
+		ghcr.io/goreleaser/goreleaser:${GOLANG_VERSION} \
+		release -p 3 --timeout 3h --clean --auto-snapshot --snapshot --skip=chocolatey,docker,homebrew,publish,scoop,validate,winget
 
 .PHONY: copy-binary
 copy-binary:
