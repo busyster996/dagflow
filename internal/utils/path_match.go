@@ -146,6 +146,17 @@ func runPathMatchTests() {
 结果:
   白名单: [/app/Logs/xxx]
   黑名单: []
+
+==============================
+场景十二:
+  请求: [/app]
+  白名单: [/app]
+  黑名单: [/app/config]
+结果:
+  白名单: [/app]
+  黑名单: [/app/config]
+
+==============================
 场景十三 (Windows路径):
   请求: [c:\app\..\]
   白名单: [C:\app]
@@ -180,13 +191,24 @@ func NewPathMatcher(whitelist, blacklist []string) *PathMatcher {
 // IsAllowed 判断给定路径是否被允许
 func (pm *PathMatcher) IsAllowed(path string) bool {
 	cp := pm.normalizePath(path)
-	// 如果没有白名单且黑名单，则允许所有路径
+	//var defaultAllow bool
+	//switch {
+	//case !pm.hasWhitelist && !pm.hasBlacklist:
+	//	// 如果白黑名单都没有，则允许所有路径
+	//	return true
+	//case pm.hasBlacklist && !pm.hasWhitelist:
+	//	// 如果只有黑名单，则默认允许所有路径
+	//	defaultAllow = true
+	//case !pm.hasBlacklist && pm.hasWhitelist:
+	//	// 如果只有白名单，则默认不允许所有路径
+	//	defaultAllow = false
+	//}
+
 	if !pm.hasWhitelist && !pm.hasBlacklist {
 		return true
 	}
-	// 默认行为, 如果存在黑名单且白名单不存在，则不允许所有路径
 	defaultAllow := pm.hasBlacklist && !pm.hasWhitelist
-	//
+
 	for _, r := range pm.rules {
 		if isDirPrefix(cp, r.Prefix) {
 			return r.Allow
