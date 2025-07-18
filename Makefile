@@ -7,8 +7,8 @@ all: binary copy-binary
 
 .PHONY: dev
 dev: # generate
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath" -o bin/dagflow-base cmd/main.go
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath,dagflow.all_runner_features" -o bin/dagflow cmd/main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath" -o bin/dagflow-base_linux_amd64_v1 cmd/main.go
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" --tags "codec.notfastpath,dagflow.all_runner_features" -o bin/dagflow_linux_amd64_v1 cmd/main.go
 
 swag:
 	@swag init --exclude pkg --parseDependencyLevel 3 --dir internal/server/router --outputTypes json -g router.go

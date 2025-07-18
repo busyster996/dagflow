@@ -38,7 +38,7 @@ func (a *sAmqp) topicExchangeName() string {
 
 func (a *sAmqp) PublishTask(node string, data string) error {
 	rkey := fmt.Sprintf("%s.%s", queue.TaskRoutingKey(), node)
-	return a.publish(amqp091.ExchangeDirect, a.directExchangeName(), rkey, data, "")
+	return a.publish(amqp091.ExchangeDirect, rkey, data, "")
 }
 
 func (a *sAmqp) PublishTaskDelayed(node string, data string, delay time.Duration) error {
@@ -54,6 +54,7 @@ func (a *sAmqp) PublishTaskDelayed(node string, data string, delay time.Duration
 		if _, err = channel.QueueDeclareSafe(
 			delayedQueue, true, false, false, false,
 			amqp091.Table{
+				"x-queue-type":              "quorum",
 				"x-dead-letter-exchange":    a.directExchangeName(),
 				"x-dead-letter-routing-key": rkey,
 			}); err != nil {
@@ -67,7 +68,7 @@ func (a *sAmqp) PublishTaskDelayed(node string, data string, delay time.Duration
 		}
 	}
 
-	return a.publish(amqp091.ExchangeDirect, a.directExchangeName(), delayedQueue, data, fmt.Sprintf("%.f", delay.Seconds()))
+	return a.publish(amqp091.ExchangeDirect, delayedQueue, data, fmt.Sprintf("%.f", delay.Seconds()))
 }
 
 func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.HandleFn) error {
@@ -77,7 +78,7 @@ func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.H
 	defer a.mu.Unlock()
 	if _, ok := a.consumerMap[qname]; !ok {
 		var err error
-		a.consumerMap[qname], err = a.newConsumer(amqp091.ExchangeDirect, a.directExchangeName(), qname, qname, false, func(data string) {
+		a.consumerMap[qname], err = a.newConsumer(amqp091.ExchangeDirect, qname, qname, false, func(data string) {
 			d.(*common.SMemDirect).Publish(data)
 		})
 		if err != nil {
@@ -90,7 +91,7 @@ func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.H
 
 func (a *sAmqp) PublishEvent(data string) error {
 	rkey := fmt.Sprintf("%s.*", queue.EventRoutingKey())
-	return a.publish(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, data, "")
+	return a.publish(amqp091.ExchangeTopic, rkey, data, "")
 }
 
 func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) error {
@@ -101,7 +102,7 @@ func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) err
 	if _, ok := a.consumerMap[rkey]; !ok {
 		qname := fmt.Sprintf("%s.%s", queue.EventRoutingKey(), ksuid.New().String())
 		var err error
-		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, qname, true, func(data string) {
+		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, rkey, qname, true, func(data string) {
 			t.(*common.SMemTopic).Publish(data)
 		})
 		if err != nil {
@@ -114,7 +115,7 @@ func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) err
 
 func (a *sAmqp) PublishManager(node string, data string) error {
 	routingKey := fmt.Sprintf("%s.%s", queue.ManagerRoutingKey(), node)
-	return a.publish(amqp091.ExchangeTopic, a.topicExchangeName(), routingKey, data, "")
+	return a.publish(amqp091.ExchangeTopic, routingKey, data, "")
 }
 
 func (a *sAmqp) SubscribeManager(ctx context.Context, node string, handler common.HandleFn) error {
@@ -125,7 +126,7 @@ func (a *sAmqp) SubscribeManager(ctx context.Context, node string, handler commo
 	if _, ok := a.consumerMap[rkey]; !ok {
 		qname := fmt.Sprintf("%s.%s", queue.ManagerRoutingKey(), node)
 		var err error
-		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, a.topicExchangeName(), rkey, qname, false, func(data string) {
+		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, rkey, qname, false, func(data string) {
 			t.(*common.SMemTopic).Publish(data)
 		})
 		if err != nil {
@@ -201,14 +202,19 @@ func (a *sAmqp) subscribe(ctx context.Context, consumer *rabbitmq.Consumer, hand
 	}()
 }
 
-func (a *sAmqp) publish(kind, ename, rkey, data, expiration string) error {
+func (a *sAmqp) publish(kind, rkey, data, expiration string) error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	var ename = a.directExchangeName()
+	if kind == amqp091.ExchangeTopic {
+		ename = a.topicExchangeName()
+	}
 	publisher, ok := a.publisherMap[ename]
 	if !ok {
 		var err error
 		publisher, err = a.newPublisher(kind, ename)
 		if err != nil {
+			logx.Errorln(err)
 			return err
 		}
 		a.publisherMap[ename] = publisher
@@ -228,17 +234,26 @@ func (a *sAmqp) publish(kind, ename, rkey, data, expiration string) error {
 }
 
 func (a *sAmqp) newPublisher(kind, ename string) (*rabbitmq.Publisher, error) {
-	return rabbitmq.NewPublisher(
+	publisher, err := rabbitmq.NewPublisher(
 		a.conn,
 		rabbitmq.WithPublisherOptionsLogger(logx.GetSubLoggerWithOption(zap.AddCallerSkip(-1))), // 日志
 		rabbitmq.WithPublisherOptionsExchangeName(ename),                                        // 交换机名称
 		rabbitmq.WithPublisherOptionsExchangeKind(kind),                                         // 交换机类型
 		rabbitmq.WithPublisherOptionsExchangeDeclare,                                            // 声明交换机
 		rabbitmq.WithPublisherOptionsExchangeDurable,                                            // 交换机持久化
+		rabbitmq.WithPublisherOptionsConfirm,                                                    // 启用确认模式
 	)
+	if err != nil {
+		return nil, err
+	}
+	return publisher, nil
 }
 
-func (a *sAmqp) newConsumer(kind, ename, rkey, qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
+func (a *sAmqp) newConsumer(kind, rkey, qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
+	var ename = a.directExchangeName()
+	if kind == amqp091.ExchangeTopic {
+		ename = a.topicExchangeName()
+	}
 	ops := []func(*rabbitmq.ConsumerOptions){
 		rabbitmq.WithConsumerOptionsLogger(logx.GetSubLoggerWithOption(zap.AddCallerSkip(-1))), // 日志
 		rabbitmq.WithConsumerOptionsExchangeName(ename),                                        // 交换机名称

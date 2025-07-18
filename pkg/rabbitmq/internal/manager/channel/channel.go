@@ -22,12 +22,14 @@ type Manager struct {
 	reconnectionCount   uint
 	reconnectionCountMu *sync.Mutex
 	dispatcher          *dispatcher.Dispatcher
+	notifyConfirm       chan amqp.Confirmation
+	notifyReturn        chan amqp.Return
 	inConfirmMode       bool
 }
 
 // New creates a new connection manager
 func New(connManager *connection.Manager, confirmMode bool, log logger.Logger, reconnectInterval time.Duration) (*Manager, error) {
-	chanManager := Manager{
+	chanManager := &Manager{
 		logger:              log,
 		connManager:         connManager,
 		channelMu:           &sync.RWMutex{},
@@ -35,6 +37,8 @@ func New(connManager *connection.Manager, confirmMode bool, log logger.Logger, r
 		reconnectionCount:   0,
 		reconnectionCountMu: &sync.Mutex{},
 		dispatcher:          dispatcher.New(),
+		notifyConfirm:       make(chan amqp.Confirmation),
+		notifyReturn:        make(chan amqp.Return),
 		inConfirmMode:       confirmMode,
 	}
 
@@ -46,7 +50,7 @@ func New(connManager *connection.Manager, confirmMode bool, log logger.Logger, r
 	chanManager.channel = ch
 	go chanManager.startNotifyCancelOrClosed()
 
-	return &chanManager, nil
+	return chanManager, chanManager.setupConfirm(ch)
 }
 
 func (m *Manager) getNewChannel() (*amqp.Channel, error) {
@@ -59,6 +63,19 @@ func (m *Manager) getNewChannel() (*amqp.Channel, error) {
 	}
 
 	return ch, nil
+}
+
+func (m *Manager) setupConfirm(newChannel *amqp.Channel) error {
+	if m.inConfirmMode {
+		if err := newChannel.Confirm(false); err != nil {
+			return err
+		}
+		m.notifyConfirm = make(chan amqp.Confirmation)
+		newChannel.NotifyPublish(m.notifyConfirm)
+		m.notifyReturn = make(chan amqp.Return)
+		newChannel.NotifyReturn(m.notifyReturn)
+	}
+	return nil
 }
 
 // startNotifyCancelOrClosed listens on the channel's cancelled and closed
@@ -132,15 +149,14 @@ func (m *Manager) reconnect() error {
 		return err
 	}
 
-	// channel creating and setting confirm mode should be in the same mutex Lock interval
-	if m.inConfirmMode {
-		if err = newChannel.Confirm(false); err != nil {
-			return err
-		}
+	if err = m.setupConfirm(newChannel); err != nil {
+		return err
 	}
 
-	if err = m.channel.Close(); err != nil {
-		m.logger.Warnf("error closing channel while reconnecting: %v", err)
+	if m.channel != nil {
+		if err = m.channel.Close(); err != nil {
+			m.logger.Warnf("error closing channel while reconnecting: %v", err)
+		}
 	}
 
 	m.channel = newChannel

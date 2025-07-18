@@ -2,6 +2,9 @@ package channel
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -157,10 +160,7 @@ PublishSafe safely wraps the (*amqp.Channel).Publish method.
 func (m *Manager) PublishSafe(
 	exchange string, key string, mandatory bool, immediate bool, msg amqp.Publishing,
 ) error {
-	m.channelMu.RLock()
-	defer m.channelMu.RUnlock()
-
-	return m.channel.PublishWithContext(
+	return m.PublishWithContextSafe(
 		context.Background(),
 		exchange,
 		key,
@@ -177,14 +177,37 @@ func (m *Manager) PublishWithContextSafe(
 	m.channelMu.RLock()
 	defer m.channelMu.RUnlock()
 
-	return m.channel.PublishWithContext(
+	closeCh, done := m.dispatcher.AddSubscriber()
+	defer close(done)
+
+	if err := m.channel.PublishWithContext(
 		ctx,
 		exchange,
 		key,
 		mandatory,
 		immediate,
 		msg,
-	)
+	); err != nil {
+		return err
+	}
+	if m.inConfirmMode {
+		select {
+		case err := <-closeCh:
+			return fmt.Errorf("publisher closed: %v", err)
+		case confirm := <-m.notifyConfirm:
+			if !confirm.Ack {
+				return errors.New("failed to publish a message: delivery is not acknowledged")
+			} else {
+				return nil
+			}
+		case ret := <-m.notifyReturn:
+			return fmt.Errorf("failed to publish a message: %s", ret.ReplyText)
+		case <-time.After(3 * time.Second):
+			return errors.New("failed to publish a message: delivery confirmation is not received")
+		}
+	} else {
+		return nil
+	}
 }
 
 func (m *Manager) PublishWithDeferredConfirmWithContextSafe(

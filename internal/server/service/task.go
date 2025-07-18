@@ -133,8 +133,9 @@ func (ts *STaskService) Create(task *types.STaskReq) (err error) {
 		node = "random"
 	}
 	// 提交任务
-	if !task.Delayed.IsZero() {
-		return pubsub.PublishTaskDelayed(node, ts.name, task.Delayed.Sub(time.Now().UTC()))
+	delayedSub := task.Delayed.Sub(time.Now().UTC())
+	if !task.Delayed.IsZero() && delayedSub > 0 {
+		return pubsub.PublishTaskDelayed(node, ts.name, delayedSub)
 	}
 	return pubsub.PublishTask(node, ts.name)
 }
