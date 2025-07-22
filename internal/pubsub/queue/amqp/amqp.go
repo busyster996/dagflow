@@ -265,9 +265,7 @@ func (a *sAmqp) newConsumer(kind, rkey, qname string, autoDel bool, handle commo
 		rabbitmq.WithConsumerOptionsQueueQuorum,                                                // 使用仲裁队列
 	}
 	if autoDel {
-		ops = append(ops, rabbitmq.WithConsumerOptionsQueueArgs(rabbitmq.Table{
-			"x-expires": 60000, // 队列过期时间, 单位毫秒
-		}))
+		ops = append(ops, rabbitmq.WithConsumerOptionsQueueExpires(60*time.Second))
 	}
 	consumer, err := rabbitmq.NewConsumer(a.conn, qname, ops...)
 	if err != nil {

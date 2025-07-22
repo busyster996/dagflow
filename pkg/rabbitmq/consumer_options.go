@@ -126,6 +126,16 @@ func WithConsumerOptionsQueueAutoDelete(options *ConsumerOptions) {
 	options.QueueOptions.AutoDelete = true
 }
 
+// WithConsumerOptionsQueueExpires ensures the queue is an expires queue
+func WithConsumerOptionsQueueExpires(expire time.Duration) func(*ConsumerOptions) {
+	return func(options *ConsumerOptions) {
+		if options.QueueOptions.Args == nil {
+			options.QueueOptions.Args = make(Table)
+		}
+		options.QueueOptions.Args["x-expires"] = expire.Milliseconds() // 队列过期时间, 单位毫秒
+	}
+}
+
 // WithConsumerOptionsQueueExclusive ensures the queue is an exclusive queue
 func WithConsumerOptionsQueueExclusive(options *ConsumerOptions) {
 	options.QueueOptions.Exclusive = true
