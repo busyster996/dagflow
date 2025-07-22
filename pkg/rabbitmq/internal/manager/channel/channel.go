@@ -22,13 +22,10 @@ type Manager struct {
 	reconnectionCount   uint
 	reconnectionCountMu *sync.Mutex
 	dispatcher          *dispatcher.Dispatcher
-	notifyConfirm       chan amqp.Confirmation
-	notifyReturn        chan amqp.Return
-	inConfirmMode       bool
 }
 
 // New creates a new connection manager
-func New(connManager *connection.Manager, confirmMode bool, log logger.Logger, reconnectInterval time.Duration) (*Manager, error) {
+func New(connManager *connection.Manager, log logger.Logger, reconnectInterval time.Duration) (*Manager, error) {
 	chanManager := &Manager{
 		logger:              log,
 		connManager:         connManager,
@@ -37,9 +34,6 @@ func New(connManager *connection.Manager, confirmMode bool, log logger.Logger, r
 		reconnectionCount:   0,
 		reconnectionCountMu: &sync.Mutex{},
 		dispatcher:          dispatcher.New(),
-		notifyConfirm:       make(chan amqp.Confirmation),
-		notifyReturn:        make(chan amqp.Return),
-		inConfirmMode:       confirmMode,
 	}
 
 	ch, err := chanManager.getNewChannel()
@@ -50,7 +44,7 @@ func New(connManager *connection.Manager, confirmMode bool, log logger.Logger, r
 	chanManager.channel = ch
 	go chanManager.startNotifyCancelOrClosed()
 
-	return chanManager, chanManager.setupConfirm(ch)
+	return chanManager, nil
 }
 
 func (m *Manager) getNewChannel() (*amqp.Channel, error) {
@@ -63,19 +57,6 @@ func (m *Manager) getNewChannel() (*amqp.Channel, error) {
 	}
 
 	return ch, nil
-}
-
-func (m *Manager) setupConfirm(newChannel *amqp.Channel) error {
-	if m.inConfirmMode {
-		if err := newChannel.Confirm(false); err != nil {
-			return err
-		}
-		m.notifyConfirm = make(chan amqp.Confirmation)
-		newChannel.NotifyPublish(m.notifyConfirm)
-		m.notifyReturn = make(chan amqp.Return)
-		newChannel.NotifyReturn(m.notifyReturn)
-	}
-	return nil
 }
 
 // startNotifyCancelOrClosed listens on the channel's cancelled and closed
@@ -146,10 +127,6 @@ func (m *Manager) reconnect() error {
 
 	newChannel, err := m.getNewChannel()
 	if err != nil {
-		return err
-	}
-
-	if err = m.setupConfirm(newChannel); err != nil {
 		return err
 	}
 

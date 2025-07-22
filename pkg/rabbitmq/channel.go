@@ -22,7 +22,7 @@ func NewChannel(conn *Conn, optionFuncs ...func(*ChannelOptions)) (*Channel, err
 	if conn.connManager == nil {
 		return nil, errors.New("connection manager can't be nil")
 	}
-	chanManager, err := channel.New(conn.connManager, options.ConfirmMode, options.Logger, conn.connManager.ReconnectInterval)
+	chanManager, err := channel.New(conn.connManager, options.Logger, conn.connManager.ReconnectInterval)
 	if err != nil {
 		return nil, err
 	}

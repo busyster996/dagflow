@@ -246,6 +246,12 @@ func (a *sAmqp) newPublisher(kind, ename string) (*rabbitmq.Publisher, error) {
 	if err != nil {
 		return nil, err
 	}
+	publisher.NotifyPublish(func(confirm rabbitmq.Confirmation) {
+		logx.Infof("publish success: %v", confirm)
+	})
+	publisher.NotifyReturn(func(r rabbitmq.Return) {
+		logx.Infoln("message returned from server", r.Exchange, r.RoutingKey, r.ReplyCode, r.ReplyText)
+	})
 	return publisher, nil
 }
 

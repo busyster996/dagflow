@@ -21,7 +21,7 @@ func NewDeclarator(conn *Conn, optionFuncs ...func(*DeclareOptions)) (*Declarato
 		return nil, errors.New("connection manager can't be nil")
 	}
 
-	chanManager, err := channel.New(conn.connManager, options.ConfirmMode, options.Logger, conn.connManager.ReconnectInterval)
+	chanManager, err := channel.New(conn.connManager, options.Logger, conn.connManager.ReconnectInterval)
 	if err != nil {
 		return nil, err
 	}

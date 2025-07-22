@@ -92,7 +92,7 @@ func NewPublisher(conn *Conn, optionFuncs ...func(*PublisherOptions)) (*Publishe
 		options:                      *options,
 	}
 	var err error
-	publisher.chanManager, err = channel.New(conn.connManager, options.ConfirmMode, options.Logger, conn.connManager.ReconnectInterval)
+	publisher.chanManager, err = channel.New(conn.connManager, options.Logger, conn.connManager.ReconnectInterval)
 	if err != nil {
 		return nil, err
 	}

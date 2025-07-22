@@ -75,7 +75,6 @@ func NewConsumer(
 	var err error
 	consumer.chanManager, err = channel.New(
 		conn.connManager,
-		false,
 		options.Logger,
 		conn.connManager.ReconnectInterval,
 	)

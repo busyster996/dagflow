@@ -2,9 +2,6 @@ package channel
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -176,38 +173,31 @@ func (m *Manager) PublishWithContextSafe(
 ) error {
 	m.channelMu.RLock()
 	defer m.channelMu.RUnlock()
-
-	closeCh, done := m.dispatcher.AddSubscriber()
-	defer close(done)
-
-	if err := m.channel.PublishWithContext(
+	confirm, err := m.channel.PublishWithDeferredConfirmWithContext(
 		ctx,
 		exchange,
 		key,
 		mandatory,
 		immediate,
 		msg,
-	); err != nil {
+	)
+	if err != nil {
+		m.logger.Errorf("publish err: %v", err)
 		return err
 	}
-	if m.inConfirmMode {
-		select {
-		case err := <-closeCh:
-			return fmt.Errorf("publisher closed: %v", err)
-		case confirm := <-m.notifyConfirm:
-			if !confirm.Ack {
-				return errors.New("failed to publish a message: delivery is not acknowledged")
-			} else {
-				return nil
-			}
-		case ret := <-m.notifyReturn:
-			return fmt.Errorf("failed to publish a message: %s", ret.ReplyText)
-		case <-time.After(3 * time.Second):
-			return errors.New("failed to publish a message: delivery confirmation is not received")
+	if confirm != nil {
+		var ok bool
+		ok, err = confirm.WaitContext(ctx)
+		if err != nil {
+			m.logger.Errorf("publish err: %v", err)
+			return err
 		}
-	} else {
-		return nil
+		if !ok {
+			m.logger.Errorf("publish err: %v", err)
+			return err
+		}
 	}
+	return nil
 }
 
 func (m *Manager) PublishWithDeferredConfirmWithContextSafe(
