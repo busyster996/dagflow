@@ -2,6 +2,7 @@ package channel
 
 import (
 	"context"
+	"errors"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -182,19 +183,16 @@ func (m *Manager) PublishWithContextSafe(
 		msg,
 	)
 	if err != nil {
-		m.logger.Errorf("publish err: %v", err)
 		return err
 	}
 	if confirm != nil {
 		var ok bool
 		ok, err = confirm.WaitContext(ctx)
 		if err != nil {
-			m.logger.Errorf("publish err: %v", err)
 			return err
 		}
 		if !ok {
-			m.logger.Errorf("publish err: %v", err)
-			return err
+			return errors.New("message publishing not confirmed")
 		}
 	}
 	return nil
