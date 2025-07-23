@@ -51,7 +51,7 @@ func (lock *fileUploadLock) Lock(ctx context.Context) error {
 	for {
 		err := lock.file.TryLock()
 		if err == nil {
-			// Lock has been aquired, so we are good to go.
+			// Lock has been acquired, so we are good to go.
 			break
 		}
 		if errors.Is(err, lockfile.ErrNotExist) {

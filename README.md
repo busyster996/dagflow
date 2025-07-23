@@ -1,6 +1,7 @@
 # dagflow
 
-[![](https://godoc.org/github.com/busyster996/dagflow/pkg/rabbitmq?status.svg)](https://godoc.org/github.com/busyster996/dagflow/pkg/rabbitmq)
+[![Go Report Card](https://goreportcard.com/badge/github.com/busyster996/dagflow)](https://goreportcard.com/report/github.com/busyster996/dagflow)
+[![Go Reference](https://pkg.go.dev/badge/github.com/busyster996/dagflow.svg)](https://pkg.go.dev/github.com/busyster996/dagflow)
 
 An `API` for cross-platform custom orchestration of execution steps without any third-party dependencies.
 Based on `DAG` , it implements the scheduling function of sequential execution of dependent steps and concurrent execution of non-dependent steps.

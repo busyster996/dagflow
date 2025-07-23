@@ -120,7 +120,7 @@ func CommitBinary(opts Options) error {
 		return err
 	}
 
-	// move the new exectuable in to become the new program
+	// move the new executable in to become the new program
 	err = os.Rename(newPath, targetPath)
 
 	if err != nil {

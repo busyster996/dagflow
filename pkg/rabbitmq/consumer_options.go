@@ -152,7 +152,7 @@ func WithConsumerOptionsQueuePassive(options *ConsumerOptions) {
 }
 
 // WithConsumerOptionsQueueNoDeclare will turn off the declaration of the queue's
-// existance upon startup
+// existence upon startup
 func WithConsumerOptionsQueueNoDeclare(options *ConsumerOptions) {
 	options.QueueOptions.Declare = false
 }
@@ -215,7 +215,7 @@ func WithConsumerOptionsExchangeNoWait(options *ConsumerOptions) {
 	options.ExchangeOptions[0].NoWait = true
 }
 
-// WithConsumerOptionsExchangeDeclare stops this library from declaring the exchanges existance
+// WithConsumerOptionsExchangeDeclare stops this library from declaring the exchanges existence
 func WithConsumerOptionsExchangeDeclare(options *ConsumerOptions) {
 	ensureExchangeOptions(options)
 	options.ExchangeOptions[0].Declare = true
