@@ -11,6 +11,7 @@ import (
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
+	"github.com/busyster996/dagflow/pkg/cuex"
 	"github.com/busyster996/dagflow/pkg/jinja"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
@@ -190,6 +191,14 @@ func (p *SPipelineService) buildRun(name string, param map[string]any) error {
 			logx.Errorln("pipeline build run", p.name, err)
 			return err
 		}
+	case "cue":
+		var res []byte
+		res, err = cuex.ParseYaml(pipeline.Content, param)
+		if err != nil {
+			logx.Errorln("pipeline build run", p.name, err)
+			return err
+		}
+		content = string(res)
 	default:
 		return fmt.Errorf("pipeline type %s not support", pipeline.TplType)
 	}
