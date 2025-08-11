@@ -3,6 +3,7 @@
 package listeners
 
 import (
+	"context"
 	"crypto/tls"
 	"fmt"
 	"net"
@@ -12,11 +13,15 @@ import (
 	"github.com/busyster996/dagflow/pkg/sockets"
 )
 
-// Init creates new listeners for the server.
-func Init(proto, addr string, tlsConfig *tls.Config) (net.Listener, error) {
+// New creates new listeners for the server.
+func New(ctx context.Context, proto, addr string, tlsConfig *tls.Config) (net.Listener, error) {
 	switch proto {
 	case "tcp":
-		return sockets.NewTCPSocket(addr, tlsConfig)
+		ln, err := sockets.NewTCPSocket(ctx, addr, tlsConfig)
+		if err != nil {
+			return nil, err
+		}
+		return &Keepalive{Listener: ln}, err
 	case "npipe":
 		// allow Administrators and SYSTEM, plus whatever additional users or groups were specified
 		sddl := "D:P(A;;GA;;;BA)(A;;GA;;;SY)"

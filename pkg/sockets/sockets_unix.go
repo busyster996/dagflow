@@ -34,6 +34,14 @@ func configureNpipeTransport(tr *http.Transport, proto, addr string) error {
 
 // DialPipe connects to a Windows named pipe.
 // This is not supported on other OSes.
-func DialPipe(_ string, _ time.Duration) (net.Conn, error) {
-	return nil, syscall.EAFNOSUPPORT
+func DialPipe(addr string, timeout time.Duration) (net.Conn, error) {
+	dialer := &net.Dialer{
+		Timeout: timeout,
+	}
+
+	return dialer.Dial("unix", addr)
+}
+
+func DefaultPipePath(name string) string {
+	return fmt.Sprintf("unix:///var/run/%s.sock", name)
 }

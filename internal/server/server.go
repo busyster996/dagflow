@@ -18,6 +18,7 @@ import (
 	"github.com/busyster996/dagflow/internal/utils"
 	"github.com/busyster996/dagflow/pkg/listeners"
 	"github.com/busyster996/dagflow/pkg/logx"
+	"github.com/busyster996/dagflow/pkg/sockets"
 )
 
 var server *sServer
@@ -78,7 +79,7 @@ func (p *sServer) startServer(db *gorm.DB, addr, workspace string, relativePath 
 		func() error {
 			if err = p.loadListeners([]string{
 				addr,
-				utils.PipeName(),
+				sockets.DefaultPipePath(utils.ServiceName),
 			}); err != nil {
 				logx.Errorln(err)
 				return err
@@ -120,7 +121,7 @@ func (p *sServer) loadListeners(hosts []string) error {
 			proto = "tcp"
 			addr = host
 		}
-		ln, err := listeners.Init(proto, addr, nil)
+		ln, err := listeners.New(p.ctx, proto, addr, nil)
 		if err != nil {
 			logx.Errorln(err)
 			return err
