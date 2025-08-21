@@ -57,6 +57,7 @@ func init() {
 		"WithConsumerOptionsQueueAutoDelete":        reflect.ValueOf(rabbitmq.WithConsumerOptionsQueueAutoDelete),
 		"WithConsumerOptionsQueueDurable":           reflect.ValueOf(rabbitmq.WithConsumerOptionsQueueDurable),
 		"WithConsumerOptionsQueueExclusive":         reflect.ValueOf(rabbitmq.WithConsumerOptionsQueueExclusive),
+		"WithConsumerOptionsQueueExpires":           reflect.ValueOf(rabbitmq.WithConsumerOptionsQueueExpires),
 		"WithConsumerOptionsQueueMessageExpiration": reflect.ValueOf(rabbitmq.WithConsumerOptionsQueueMessageExpiration),
 		"WithConsumerOptionsQueueNoDeclare":         reflect.ValueOf(rabbitmq.WithConsumerOptionsQueueNoDeclare),
 		"WithConsumerOptionsQueueNoWait":            reflect.ValueOf(rabbitmq.WithConsumerOptionsQueueNoWait),

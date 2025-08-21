@@ -66,3 +66,9 @@ archives:
 
 release:
   disable: true
+
+upx:
+  - enabled: true
+    compress: best
+    lzma: true
+    

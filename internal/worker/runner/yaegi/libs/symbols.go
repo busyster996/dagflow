@@ -20,7 +20,6 @@ import (
 	_ "github.com/google/uuid"
 	_ "github.com/gorilla/websocket"
 	_ "github.com/imroc/req/v3"
-	_ "github.com/json-iterator/go"
 	_ "github.com/panjf2000/ants/v2"
 	_ "github.com/pelletier/go-toml/v2"
 	_ "github.com/pires/go-proxyproto"
@@ -81,7 +80,6 @@ func init() {
 //go:generate yaegi extract github.com/google/uuid
 //go:generate yaegi extract github.com/gorilla/websocket
 //go:generate yaegi extract github.com/imroc/req/v3
-//go:generate yaegi extract github.com/json-iterator/go
 //go:generate yaegi extract github.com/panjf2000/ants/v2
 //go:generate yaegi extract github.com/pelletier/go-toml/v2
 //go:generate yaegi extract github.com/pires/go-proxyproto

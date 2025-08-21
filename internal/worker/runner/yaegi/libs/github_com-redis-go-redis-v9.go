@@ -233,10 +233,12 @@ func init() {
 		"ACLCmdable":                 reflect.ValueOf((*redis.ACLCmdable)(nil)),
 		"ACLLogCmd":                  reflect.ValueOf((*redis.ACLLogCmd)(nil)),
 		"ACLLogEntry":                reflect.ValueOf((*redis.ACLLogEntry)(nil)),
+		"AggregateBuilder":           reflect.ValueOf((*redis.AggregateBuilder)(nil)),
 		"AggregateCmd":               reflect.ValueOf((*redis.AggregateCmd)(nil)),
 		"AggregateQuery":             reflect.ValueOf((*redis.AggregateQuery)(nil)),
 		"AggregateRow":               reflect.ValueOf((*redis.AggregateRow)(nil)),
 		"Aggregator":                 reflect.ValueOf((*redis.Aggregator)(nil)),
+		"AliasBuilder":               reflect.ValueOf((*redis.AliasBuilder)(nil)),
 		"BFInfo":                     reflect.ValueOf((*redis.BFInfo)(nil)),
 		"BFInfoCmd":                  reflect.ValueOf((*redis.BFInfoCmd)(nil)),
 		"BFInsertOptions":            reflect.ValueOf((*redis.BFInsertOptions)(nil)),
@@ -273,12 +275,17 @@ func init() {
 		"CommandsInfoCmd":            reflect.ValueOf((*redis.CommandsInfoCmd)(nil)),
 		"Conn":                       reflect.ValueOf((*redis.Conn)(nil)),
 		"ConsistentHash":             reflect.ValueOf((*redis.ConsistentHash)(nil)),
+		"CreateIndexBuilder":         reflect.ValueOf((*redis.CreateIndexBuilder)(nil)),
+		"CursorBuilder":              reflect.ValueOf((*redis.CursorBuilder)(nil)),
 		"CursorStats":                reflect.ValueOf((*redis.CursorStats)(nil)),
 		"DialHook":                   reflect.ValueOf((*redis.DialHook)(nil)),
+		"DictBuilder":                reflect.ValueOf((*redis.DictBuilder)(nil)),
 		"Document":                   reflect.ValueOf((*redis.Document)(nil)),
+		"DropIndexBuilder":           reflect.ValueOf((*redis.DropIndexBuilder)(nil)),
 		"DurationCmd":                reflect.ValueOf((*redis.DurationCmd)(nil)),
 		"Engine":                     reflect.ValueOf((*redis.Engine)(nil)),
 		"Error":                      reflect.ValueOf((*redis.Error)(nil)),
+		"ExplainBuilder":             reflect.ValueOf((*redis.ExplainBuilder)(nil)),
 		"FTAggregateApply":           reflect.ValueOf((*redis.FTAggregateApply)(nil)),
 		"FTAggregateGroupBy":         reflect.ValueOf((*redis.FTAggregateGroupBy)(nil)),
 		"FTAggregateLoad":            reflect.ValueOf((*redis.FTAggregateLoad)(nil)),
@@ -293,6 +300,7 @@ func init() {
 		"FTExplainOptions":           reflect.ValueOf((*redis.FTExplainOptions)(nil)),
 		"FTFlatOptions":              reflect.ValueOf((*redis.FTFlatOptions)(nil)),
 		"FTHNSWOptions":              reflect.ValueOf((*redis.FTHNSWOptions)(nil)),
+		"FTInfoBuilder":              reflect.ValueOf((*redis.FTInfoBuilder)(nil)),
 		"FTInfoCmd":                  reflect.ValueOf((*redis.FTInfoCmd)(nil)),
 		"FTInfoResult":               reflect.ValueOf((*redis.FTInfoResult)(nil)),
 		"FTSearchCmd":                reflect.ValueOf((*redis.FTSearchCmd)(nil)),
@@ -308,6 +316,7 @@ func init() {
 		"FTSynDumpCmd":               reflect.ValueOf((*redis.FTSynDumpCmd)(nil)),
 		"FTSynDumpResult":            reflect.ValueOf((*redis.FTSynDumpResult)(nil)),
 		"FTSynUpdateOptions":         reflect.ValueOf((*redis.FTSynUpdateOptions)(nil)),
+		"FTVamanaOptions":            reflect.ValueOf((*redis.FTVamanaOptions)(nil)),
 		"FTVectorArgs":               reflect.ValueOf((*redis.FTVectorArgs)(nil)),
 		"FailoverOptions":            reflect.ValueOf((*redis.FailoverOptions)(nil)),
 		"FieldSchema":                reflect.ValueOf((*redis.FieldSchema)(nil)),
@@ -405,6 +414,7 @@ func init() {
 		"Scripter":                   reflect.ValueOf((*redis.Scripter)(nil)),
 		"ScriptingFunctionsCmdable":  reflect.ValueOf((*redis.ScriptingFunctionsCmdable)(nil)),
 		"SearchAggregator":           reflect.ValueOf((*redis.SearchAggregator)(nil)),
+		"SearchBuilder":              reflect.ValueOf((*redis.SearchBuilder)(nil)),
 		"SearchCmdable":              reflect.ValueOf((*redis.SearchCmdable)(nil)),
 		"SearchFieldType":            reflect.ValueOf((*redis.SearchFieldType)(nil)),
 		"SearchQuery":                reflect.ValueOf((*redis.SearchQuery)(nil)),
@@ -417,6 +427,7 @@ func init() {
 		"SlowLogCmd":                 reflect.ValueOf((*redis.SlowLogCmd)(nil)),
 		"Sort":                       reflect.ValueOf((*redis.Sort)(nil)),
 		"SortedSetCmdable":           reflect.ValueOf((*redis.SortedSetCmdable)(nil)),
+		"SpellCheckBuilder":          reflect.ValueOf((*redis.SpellCheckBuilder)(nil)),
 		"SpellCheckResult":           reflect.ValueOf((*redis.SpellCheckResult)(nil)),
 		"SpellCheckSuggestion":       reflect.ValueOf((*redis.SpellCheckSuggestion)(nil)),
 		"SpellCheckTerms":            reflect.ValueOf((*redis.SpellCheckTerms)(nil)),
@@ -428,6 +439,7 @@ func init() {
 		"StringSliceCmd":             reflect.ValueOf((*redis.StringSliceCmd)(nil)),
 		"StringStructMapCmd":         reflect.ValueOf((*redis.StringStructMapCmd)(nil)),
 		"Subscription":               reflect.ValueOf((*redis.Subscription)(nil)),
+		"SynUpdateBuilder":           reflect.ValueOf((*redis.SynUpdateBuilder)(nil)),
 		"TDigestInfo":                reflect.ValueOf((*redis.TDigestInfo)(nil)),
 		"TDigestInfoCmd":             reflect.ValueOf((*redis.TDigestInfoCmd)(nil)),
 		"TDigestMergeOptions":        reflect.ValueOf((*redis.TDigestMergeOptions)(nil)),
@@ -445,6 +457,7 @@ func init() {
 		"TSTimestampValue":           reflect.ValueOf((*redis.TSTimestampValue)(nil)),
 		"TSTimestampValueCmd":        reflect.ValueOf((*redis.TSTimestampValueCmd)(nil)),
 		"TSTimestampValueSliceCmd":   reflect.ValueOf((*redis.TSTimestampValueSliceCmd)(nil)),
+		"TagValsBuilder":             reflect.ValueOf((*redis.TagValsBuilder)(nil)),
 		"TimeCmd":                    reflect.ValueOf((*redis.TimeCmd)(nil)),
 		"TimeseriesCmdable":          reflect.ValueOf((*redis.TimeseriesCmdable)(nil)),
 		"TopKInfo":                   reflect.ValueOf((*redis.TopKInfo)(nil)),
@@ -579,7 +592,11 @@ type _github_com_redis_go_redis_v9_BitMapCmdable struct {
 	WBitField   func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitFieldRO func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitOpAnd   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpAndOr func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff  func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff1 func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpNot   func(ctx context.Context, destKey string, key string) *redis.IntCmd
+	WBitOpOne   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpOr    func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpXor   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitPos     func(ctx context.Context, key string, bit int64, pos ...int64) *redis.IntCmd
@@ -600,8 +617,20 @@ func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitFieldRO(ctx context.Cont
 func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitOpAnd(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpAnd(ctx, destKey, keys...)
 }
+func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitOpAndOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpAndOr(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitOpDiff(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitOpDiff1(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff1(ctx, destKey, keys...)
+}
 func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitOpNot(ctx context.Context, destKey string, key string) *redis.IntCmd {
 	return W.WBitOpNot(ctx, destKey, key)
+}
+func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitOpOne(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpOne(ctx, destKey, keys...)
 }
 func (W _github_com_redis_go_redis_v9_BitMapCmdable) BitOpOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpOr(ctx, destKey, keys...)
@@ -773,7 +802,11 @@ type _github_com_redis_go_redis_v9_Cmdable struct {
 	WBitField                     func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitFieldRO                   func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitOpAnd                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpAndOr                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff                    func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff1                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpNot                     func(ctx context.Context, destKey string, key string) *redis.IntCmd
+	WBitOpOne                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpOr                      func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpXor                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitPos                       func(ctx context.Context, key string, bit int64, pos ...int64) *redis.IntCmd
@@ -1176,12 +1209,14 @@ type _github_com_redis_go_redis_v9_Cmdable struct {
 	WVSimWithArgsWithScores       func(ctx context.Context, key string, val redis.Vector, args *redis.VSimArgs) *redis.VectorScoreSliceCmd
 	WVSimWithScores               func(ctx context.Context, key string, val redis.Vector) *redis.VectorScoreSliceCmd
 	WXAck                         func(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd
+	WXAckDel                      func(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd
 	WXAdd                         func(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd
 	WXAutoClaim                   func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
 	WXAutoClaimJustID             func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimJustIDCmd
 	WXClaim                       func(ctx context.Context, a *redis.XClaimArgs) *redis.XMessageSliceCmd
 	WXClaimJustID                 func(ctx context.Context, a *redis.XClaimArgs) *redis.StringSliceCmd
 	WXDel                         func(ctx context.Context, stream string, ids ...string) *redis.IntCmd
+	WXDelEx                       func(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd
 	WXGroupCreate                 func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
 	WXGroupCreateConsumer         func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
 	WXGroupCreateMkStream         func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
@@ -1204,8 +1239,12 @@ type _github_com_redis_go_redis_v9_Cmdable struct {
 	WXRevRangeN                   func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
 	WXTrimMaxLen                  func(ctx context.Context, key string, maxLen int64) *redis.IntCmd
 	WXTrimMaxLenApprox            func(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd
+	WXTrimMaxLenApproxMode        func(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd
+	WXTrimMaxLenMode              func(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd
 	WXTrimMinID                   func(ctx context.Context, key string, minID string) *redis.IntCmd
 	WXTrimMinIDApprox             func(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd
+	WXTrimMinIDApproxMode         func(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd
+	WXTrimMinIDMode               func(ctx context.Context, key string, minID string, mode string) *redis.IntCmd
 	WZAdd                         func(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
 	WZAddArgs                     func(ctx context.Context, key string, args redis.ZAddArgs) *redis.IntCmd
 	WZAddArgsIncr                 func(ctx context.Context, key string, args redis.ZAddArgs) *redis.FloatCmd
@@ -1384,8 +1423,20 @@ func (W _github_com_redis_go_redis_v9_Cmdable) BitFieldRO(ctx context.Context, k
 func (W _github_com_redis_go_redis_v9_Cmdable) BitOpAnd(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpAnd(ctx, destKey, keys...)
 }
+func (W _github_com_redis_go_redis_v9_Cmdable) BitOpAndOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpAndOr(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_Cmdable) BitOpDiff(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_Cmdable) BitOpDiff1(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff1(ctx, destKey, keys...)
+}
 func (W _github_com_redis_go_redis_v9_Cmdable) BitOpNot(ctx context.Context, destKey string, key string) *redis.IntCmd {
 	return W.WBitOpNot(ctx, destKey, key)
+}
+func (W _github_com_redis_go_redis_v9_Cmdable) BitOpOne(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpOne(ctx, destKey, keys...)
 }
 func (W _github_com_redis_go_redis_v9_Cmdable) BitOpOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpOr(ctx, destKey, keys...)
@@ -2593,6 +2644,9 @@ func (W _github_com_redis_go_redis_v9_Cmdable) VSimWithScores(ctx context.Contex
 func (W _github_com_redis_go_redis_v9_Cmdable) XAck(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd {
 	return W.WXAck(ctx, stream, group, ids...)
 }
+func (W _github_com_redis_go_redis_v9_Cmdable) XAckDel(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXAckDel(ctx, stream, group, mode, ids...)
+}
 func (W _github_com_redis_go_redis_v9_Cmdable) XAdd(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd {
 	return W.WXAdd(ctx, a)
 }
@@ -2610,6 +2664,9 @@ func (W _github_com_redis_go_redis_v9_Cmdable) XClaimJustID(ctx context.Context,
 }
 func (W _github_com_redis_go_redis_v9_Cmdable) XDel(ctx context.Context, stream string, ids ...string) *redis.IntCmd {
 	return W.WXDel(ctx, stream, ids...)
+}
+func (W _github_com_redis_go_redis_v9_Cmdable) XDelEx(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXDelEx(ctx, stream, mode, ids...)
 }
 func (W _github_com_redis_go_redis_v9_Cmdable) XGroupCreate(ctx context.Context, stream string, group string, start string) *redis.StatusCmd {
 	return W.WXGroupCreate(ctx, stream, group, start)
@@ -2677,11 +2734,23 @@ func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMaxLen(ctx context.Context, 
 func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMaxLenApprox(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd {
 	return W.WXTrimMaxLenApprox(ctx, key, maxLen, limit)
 }
+func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMaxLenApproxMode(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenApproxMode(ctx, key, maxLen, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMaxLenMode(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenMode(ctx, key, maxLen, mode)
+}
 func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMinID(ctx context.Context, key string, minID string) *redis.IntCmd {
 	return W.WXTrimMinID(ctx, key, minID)
 }
 func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMinIDApprox(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd {
 	return W.WXTrimMinIDApprox(ctx, key, minID, limit)
+}
+func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMinIDApproxMode(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDApproxMode(ctx, key, minID, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_Cmdable) XTrimMinIDMode(ctx context.Context, key string, minID string, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDMode(ctx, key, minID, mode)
 }
 func (W _github_com_redis_go_redis_v9_Cmdable) ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd {
 	return W.WZAdd(ctx, key, members...)
@@ -3574,7 +3643,11 @@ type _github_com_redis_go_redis_v9_Pipeliner struct {
 	WBitField                     func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitFieldRO                   func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitOpAnd                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpAndOr                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff                    func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff1                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpNot                     func(ctx context.Context, destKey string, key string) *redis.IntCmd
+	WBitOpOne                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpOr                      func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpXor                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitPos                       func(ctx context.Context, key string, bit int64, pos ...int64) *redis.IntCmd
@@ -3987,12 +4060,14 @@ type _github_com_redis_go_redis_v9_Pipeliner struct {
 	WVSimWithArgsWithScores       func(ctx context.Context, key string, val redis.Vector, args *redis.VSimArgs) *redis.VectorScoreSliceCmd
 	WVSimWithScores               func(ctx context.Context, key string, val redis.Vector) *redis.VectorScoreSliceCmd
 	WXAck                         func(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd
+	WXAckDel                      func(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd
 	WXAdd                         func(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd
 	WXAutoClaim                   func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
 	WXAutoClaimJustID             func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimJustIDCmd
 	WXClaim                       func(ctx context.Context, a *redis.XClaimArgs) *redis.XMessageSliceCmd
 	WXClaimJustID                 func(ctx context.Context, a *redis.XClaimArgs) *redis.StringSliceCmd
 	WXDel                         func(ctx context.Context, stream string, ids ...string) *redis.IntCmd
+	WXDelEx                       func(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd
 	WXGroupCreate                 func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
 	WXGroupCreateConsumer         func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
 	WXGroupCreateMkStream         func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
@@ -4015,8 +4090,12 @@ type _github_com_redis_go_redis_v9_Pipeliner struct {
 	WXRevRangeN                   func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
 	WXTrimMaxLen                  func(ctx context.Context, key string, maxLen int64) *redis.IntCmd
 	WXTrimMaxLenApprox            func(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd
+	WXTrimMaxLenApproxMode        func(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd
+	WXTrimMaxLenMode              func(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd
 	WXTrimMinID                   func(ctx context.Context, key string, minID string) *redis.IntCmd
 	WXTrimMinIDApprox             func(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd
+	WXTrimMinIDApproxMode         func(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd
+	WXTrimMinIDMode               func(ctx context.Context, key string, minID string, mode string) *redis.IntCmd
 	WZAdd                         func(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
 	WZAddArgs                     func(ctx context.Context, key string, args redis.ZAddArgs) *redis.IntCmd
 	WZAddArgsIncr                 func(ctx context.Context, key string, args redis.ZAddArgs) *redis.FloatCmd
@@ -4201,8 +4280,20 @@ func (W _github_com_redis_go_redis_v9_Pipeliner) BitFieldRO(ctx context.Context,
 func (W _github_com_redis_go_redis_v9_Pipeliner) BitOpAnd(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpAnd(ctx, destKey, keys...)
 }
+func (W _github_com_redis_go_redis_v9_Pipeliner) BitOpAndOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpAndOr(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) BitOpDiff(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) BitOpDiff1(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff1(ctx, destKey, keys...)
+}
 func (W _github_com_redis_go_redis_v9_Pipeliner) BitOpNot(ctx context.Context, destKey string, key string) *redis.IntCmd {
 	return W.WBitOpNot(ctx, destKey, key)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) BitOpOne(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpOne(ctx, destKey, keys...)
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) BitOpOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpOr(ctx, destKey, keys...)
@@ -5440,6 +5531,9 @@ func (W _github_com_redis_go_redis_v9_Pipeliner) VSimWithScores(ctx context.Cont
 func (W _github_com_redis_go_redis_v9_Pipeliner) XAck(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd {
 	return W.WXAck(ctx, stream, group, ids...)
 }
+func (W _github_com_redis_go_redis_v9_Pipeliner) XAckDel(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXAckDel(ctx, stream, group, mode, ids...)
+}
 func (W _github_com_redis_go_redis_v9_Pipeliner) XAdd(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd {
 	return W.WXAdd(ctx, a)
 }
@@ -5457,6 +5551,9 @@ func (W _github_com_redis_go_redis_v9_Pipeliner) XClaimJustID(ctx context.Contex
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) XDel(ctx context.Context, stream string, ids ...string) *redis.IntCmd {
 	return W.WXDel(ctx, stream, ids...)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) XDelEx(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXDelEx(ctx, stream, mode, ids...)
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) XGroupCreate(ctx context.Context, stream string, group string, start string) *redis.StatusCmd {
 	return W.WXGroupCreate(ctx, stream, group, start)
@@ -5524,11 +5621,23 @@ func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMaxLen(ctx context.Context
 func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMaxLenApprox(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd {
 	return W.WXTrimMaxLenApprox(ctx, key, maxLen, limit)
 }
+func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMaxLenApproxMode(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenApproxMode(ctx, key, maxLen, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMaxLenMode(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenMode(ctx, key, maxLen, mode)
+}
 func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMinID(ctx context.Context, key string, minID string) *redis.IntCmd {
 	return W.WXTrimMinID(ctx, key, minID)
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMinIDApprox(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd {
 	return W.WXTrimMinIDApprox(ctx, key, minID, limit)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMinIDApproxMode(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDApproxMode(ctx, key, minID, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) XTrimMinIDMode(ctx context.Context, key string, minID string, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDMode(ctx, key, minID, mode)
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd {
 	return W.WZAdd(ctx, key, members...)
@@ -6584,7 +6693,11 @@ type _github_com_redis_go_redis_v9_StatefulCmdable struct {
 	WBitField                     func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitFieldRO                   func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitOpAnd                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpAndOr                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff                    func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff1                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpNot                     func(ctx context.Context, destKey string, key string) *redis.IntCmd
+	WBitOpOne                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpOr                      func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpXor                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitPos                       func(ctx context.Context, key string, bit int64, pos ...int64) *redis.IntCmd
@@ -6992,12 +7105,14 @@ type _github_com_redis_go_redis_v9_StatefulCmdable struct {
 	WVSimWithArgsWithScores       func(ctx context.Context, key string, val redis.Vector, args *redis.VSimArgs) *redis.VectorScoreSliceCmd
 	WVSimWithScores               func(ctx context.Context, key string, val redis.Vector) *redis.VectorScoreSliceCmd
 	WXAck                         func(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd
+	WXAckDel                      func(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd
 	WXAdd                         func(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd
 	WXAutoClaim                   func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
 	WXAutoClaimJustID             func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimJustIDCmd
 	WXClaim                       func(ctx context.Context, a *redis.XClaimArgs) *redis.XMessageSliceCmd
 	WXClaimJustID                 func(ctx context.Context, a *redis.XClaimArgs) *redis.StringSliceCmd
 	WXDel                         func(ctx context.Context, stream string, ids ...string) *redis.IntCmd
+	WXDelEx                       func(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd
 	WXGroupCreate                 func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
 	WXGroupCreateConsumer         func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
 	WXGroupCreateMkStream         func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
@@ -7020,8 +7135,12 @@ type _github_com_redis_go_redis_v9_StatefulCmdable struct {
 	WXRevRangeN                   func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
 	WXTrimMaxLen                  func(ctx context.Context, key string, maxLen int64) *redis.IntCmd
 	WXTrimMaxLenApprox            func(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd
+	WXTrimMaxLenApproxMode        func(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd
+	WXTrimMaxLenMode              func(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd
 	WXTrimMinID                   func(ctx context.Context, key string, minID string) *redis.IntCmd
 	WXTrimMinIDApprox             func(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd
+	WXTrimMinIDApproxMode         func(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd
+	WXTrimMinIDMode               func(ctx context.Context, key string, minID string, mode string) *redis.IntCmd
 	WZAdd                         func(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
 	WZAddArgs                     func(ctx context.Context, key string, args redis.ZAddArgs) *redis.IntCmd
 	WZAddArgsIncr                 func(ctx context.Context, key string, args redis.ZAddArgs) *redis.FloatCmd
@@ -7206,8 +7325,20 @@ func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitFieldRO(ctx context.Co
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitOpAnd(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpAnd(ctx, destKey, keys...)
 }
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitOpAndOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpAndOr(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitOpDiff(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitOpDiff1(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff1(ctx, destKey, keys...)
+}
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitOpNot(ctx context.Context, destKey string, key string) *redis.IntCmd {
 	return W.WBitOpNot(ctx, destKey, key)
+}
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitOpOne(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpOne(ctx, destKey, keys...)
 }
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) BitOpOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpOr(ctx, destKey, keys...)
@@ -8430,6 +8561,9 @@ func (W _github_com_redis_go_redis_v9_StatefulCmdable) VSimWithScores(ctx contex
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) XAck(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd {
 	return W.WXAck(ctx, stream, group, ids...)
 }
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) XAckDel(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXAckDel(ctx, stream, group, mode, ids...)
+}
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) XAdd(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd {
 	return W.WXAdd(ctx, a)
 }
@@ -8447,6 +8581,9 @@ func (W _github_com_redis_go_redis_v9_StatefulCmdable) XClaimJustID(ctx context.
 }
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) XDel(ctx context.Context, stream string, ids ...string) *redis.IntCmd {
 	return W.WXDel(ctx, stream, ids...)
+}
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) XDelEx(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXDelEx(ctx, stream, mode, ids...)
 }
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) XGroupCreate(ctx context.Context, stream string, group string, start string) *redis.StatusCmd {
 	return W.WXGroupCreate(ctx, stream, group, start)
@@ -8514,11 +8651,23 @@ func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMaxLen(ctx context.C
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMaxLenApprox(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd {
 	return W.WXTrimMaxLenApprox(ctx, key, maxLen, limit)
 }
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMaxLenApproxMode(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenApproxMode(ctx, key, maxLen, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMaxLenMode(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenMode(ctx, key, maxLen, mode)
+}
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMinID(ctx context.Context, key string, minID string) *redis.IntCmd {
 	return W.WXTrimMinID(ctx, key, minID)
 }
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMinIDApprox(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd {
 	return W.WXTrimMinIDApprox(ctx, key, minID, limit)
+}
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMinIDApproxMode(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDApproxMode(ctx, key, minID, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_StatefulCmdable) XTrimMinIDMode(ctx context.Context, key string, minID string, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDMode(ctx, key, minID, mode)
 }
 func (W _github_com_redis_go_redis_v9_StatefulCmdable) ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd {
 	return W.WZAdd(ctx, key, members...)
@@ -8673,42 +8822,51 @@ func (W _github_com_redis_go_redis_v9_StatefulCmdable) ZUnionWithScores(ctx cont
 
 // _github_com_redis_go_redis_v9_StreamCmdable is an interface wrapper for StreamCmdable type
 type _github_com_redis_go_redis_v9_StreamCmdable struct {
-	IValue                interface{}
-	WXAck                 func(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd
-	WXAdd                 func(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd
-	WXAutoClaim           func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
-	WXAutoClaimJustID     func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimJustIDCmd
-	WXClaim               func(ctx context.Context, a *redis.XClaimArgs) *redis.XMessageSliceCmd
-	WXClaimJustID         func(ctx context.Context, a *redis.XClaimArgs) *redis.StringSliceCmd
-	WXDel                 func(ctx context.Context, stream string, ids ...string) *redis.IntCmd
-	WXGroupCreate         func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
-	WXGroupCreateConsumer func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
-	WXGroupCreateMkStream func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
-	WXGroupDelConsumer    func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
-	WXGroupDestroy        func(ctx context.Context, stream string, group string) *redis.IntCmd
-	WXGroupSetID          func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
-	WXInfoConsumers       func(ctx context.Context, key string, group string) *redis.XInfoConsumersCmd
-	WXInfoGroups          func(ctx context.Context, key string) *redis.XInfoGroupsCmd
-	WXInfoStream          func(ctx context.Context, key string) *redis.XInfoStreamCmd
-	WXInfoStreamFull      func(ctx context.Context, key string, count int) *redis.XInfoStreamFullCmd
-	WXLen                 func(ctx context.Context, stream string) *redis.IntCmd
-	WXPending             func(ctx context.Context, stream string, group string) *redis.XPendingCmd
-	WXPendingExt          func(ctx context.Context, a *redis.XPendingExtArgs) *redis.XPendingExtCmd
-	WXRange               func(ctx context.Context, stream string, start string, stop string) *redis.XMessageSliceCmd
-	WXRangeN              func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
-	WXRead                func(ctx context.Context, a *redis.XReadArgs) *redis.XStreamSliceCmd
-	WXReadGroup           func(ctx context.Context, a *redis.XReadGroupArgs) *redis.XStreamSliceCmd
-	WXReadStreams         func(ctx context.Context, streams ...string) *redis.XStreamSliceCmd
-	WXRevRange            func(ctx context.Context, stream string, start string, stop string) *redis.XMessageSliceCmd
-	WXRevRangeN           func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
-	WXTrimMaxLen          func(ctx context.Context, key string, maxLen int64) *redis.IntCmd
-	WXTrimMaxLenApprox    func(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd
-	WXTrimMinID           func(ctx context.Context, key string, minID string) *redis.IntCmd
-	WXTrimMinIDApprox     func(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd
+	IValue                 interface{}
+	WXAck                  func(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd
+	WXAckDel               func(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd
+	WXAdd                  func(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd
+	WXAutoClaim            func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
+	WXAutoClaimJustID      func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimJustIDCmd
+	WXClaim                func(ctx context.Context, a *redis.XClaimArgs) *redis.XMessageSliceCmd
+	WXClaimJustID          func(ctx context.Context, a *redis.XClaimArgs) *redis.StringSliceCmd
+	WXDel                  func(ctx context.Context, stream string, ids ...string) *redis.IntCmd
+	WXDelEx                func(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd
+	WXGroupCreate          func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
+	WXGroupCreateConsumer  func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
+	WXGroupCreateMkStream  func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
+	WXGroupDelConsumer     func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
+	WXGroupDestroy         func(ctx context.Context, stream string, group string) *redis.IntCmd
+	WXGroupSetID           func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
+	WXInfoConsumers        func(ctx context.Context, key string, group string) *redis.XInfoConsumersCmd
+	WXInfoGroups           func(ctx context.Context, key string) *redis.XInfoGroupsCmd
+	WXInfoStream           func(ctx context.Context, key string) *redis.XInfoStreamCmd
+	WXInfoStreamFull       func(ctx context.Context, key string, count int) *redis.XInfoStreamFullCmd
+	WXLen                  func(ctx context.Context, stream string) *redis.IntCmd
+	WXPending              func(ctx context.Context, stream string, group string) *redis.XPendingCmd
+	WXPendingExt           func(ctx context.Context, a *redis.XPendingExtArgs) *redis.XPendingExtCmd
+	WXRange                func(ctx context.Context, stream string, start string, stop string) *redis.XMessageSliceCmd
+	WXRangeN               func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
+	WXRead                 func(ctx context.Context, a *redis.XReadArgs) *redis.XStreamSliceCmd
+	WXReadGroup            func(ctx context.Context, a *redis.XReadGroupArgs) *redis.XStreamSliceCmd
+	WXReadStreams          func(ctx context.Context, streams ...string) *redis.XStreamSliceCmd
+	WXRevRange             func(ctx context.Context, stream string, start string, stop string) *redis.XMessageSliceCmd
+	WXRevRangeN            func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
+	WXTrimMaxLen           func(ctx context.Context, key string, maxLen int64) *redis.IntCmd
+	WXTrimMaxLenApprox     func(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd
+	WXTrimMaxLenApproxMode func(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd
+	WXTrimMaxLenMode       func(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd
+	WXTrimMinID            func(ctx context.Context, key string, minID string) *redis.IntCmd
+	WXTrimMinIDApprox      func(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd
+	WXTrimMinIDApproxMode  func(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd
+	WXTrimMinIDMode        func(ctx context.Context, key string, minID string, mode string) *redis.IntCmd
 }
 
 func (W _github_com_redis_go_redis_v9_StreamCmdable) XAck(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd {
 	return W.WXAck(ctx, stream, group, ids...)
+}
+func (W _github_com_redis_go_redis_v9_StreamCmdable) XAckDel(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXAckDel(ctx, stream, group, mode, ids...)
 }
 func (W _github_com_redis_go_redis_v9_StreamCmdable) XAdd(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd {
 	return W.WXAdd(ctx, a)
@@ -8727,6 +8885,9 @@ func (W _github_com_redis_go_redis_v9_StreamCmdable) XClaimJustID(ctx context.Co
 }
 func (W _github_com_redis_go_redis_v9_StreamCmdable) XDel(ctx context.Context, stream string, ids ...string) *redis.IntCmd {
 	return W.WXDel(ctx, stream, ids...)
+}
+func (W _github_com_redis_go_redis_v9_StreamCmdable) XDelEx(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXDelEx(ctx, stream, mode, ids...)
 }
 func (W _github_com_redis_go_redis_v9_StreamCmdable) XGroupCreate(ctx context.Context, stream string, group string, start string) *redis.StatusCmd {
 	return W.WXGroupCreate(ctx, stream, group, start)
@@ -8794,11 +8955,23 @@ func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMaxLen(ctx context.Con
 func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMaxLenApprox(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd {
 	return W.WXTrimMaxLenApprox(ctx, key, maxLen, limit)
 }
+func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMaxLenApproxMode(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenApproxMode(ctx, key, maxLen, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMaxLenMode(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenMode(ctx, key, maxLen, mode)
+}
 func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMinID(ctx context.Context, key string, minID string) *redis.IntCmd {
 	return W.WXTrimMinID(ctx, key, minID)
 }
 func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMinIDApprox(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd {
 	return W.WXTrimMinIDApprox(ctx, key, minID, limit)
+}
+func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMinIDApproxMode(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDApproxMode(ctx, key, minID, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_StreamCmdable) XTrimMinIDMode(ctx context.Context, key string, minID string, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDMode(ctx, key, minID, mode)
 }
 
 // _github_com_redis_go_redis_v9_StringCmdable is an interface wrapper for StringCmdable type
@@ -9063,7 +9236,11 @@ type _github_com_redis_go_redis_v9_UniversalClient struct {
 	WBitField                     func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitFieldRO                   func(ctx context.Context, key string, values ...interface{}) *redis.IntSliceCmd
 	WBitOpAnd                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpAndOr                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff                    func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
+	WBitOpDiff1                   func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpNot                     func(ctx context.Context, destKey string, key string) *redis.IntCmd
+	WBitOpOne                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpOr                      func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitOpXor                     func(ctx context.Context, destKey string, keys ...string) *redis.IntCmd
 	WBitPos                       func(ctx context.Context, key string, bit int64, pos ...int64) *redis.IntCmd
@@ -9474,12 +9651,14 @@ type _github_com_redis_go_redis_v9_UniversalClient struct {
 	WVSimWithScores               func(ctx context.Context, key string, val redis.Vector) *redis.VectorScoreSliceCmd
 	WWatch                        func(ctx context.Context, fn func(*redis.Tx) error, keys ...string) error
 	WXAck                         func(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd
+	WXAckDel                      func(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd
 	WXAdd                         func(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd
 	WXAutoClaim                   func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimCmd
 	WXAutoClaimJustID             func(ctx context.Context, a *redis.XAutoClaimArgs) *redis.XAutoClaimJustIDCmd
 	WXClaim                       func(ctx context.Context, a *redis.XClaimArgs) *redis.XMessageSliceCmd
 	WXClaimJustID                 func(ctx context.Context, a *redis.XClaimArgs) *redis.StringSliceCmd
 	WXDel                         func(ctx context.Context, stream string, ids ...string) *redis.IntCmd
+	WXDelEx                       func(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd
 	WXGroupCreate                 func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
 	WXGroupCreateConsumer         func(ctx context.Context, stream string, group string, consumer string) *redis.IntCmd
 	WXGroupCreateMkStream         func(ctx context.Context, stream string, group string, start string) *redis.StatusCmd
@@ -9502,8 +9681,12 @@ type _github_com_redis_go_redis_v9_UniversalClient struct {
 	WXRevRangeN                   func(ctx context.Context, stream string, start string, stop string, count int64) *redis.XMessageSliceCmd
 	WXTrimMaxLen                  func(ctx context.Context, key string, maxLen int64) *redis.IntCmd
 	WXTrimMaxLenApprox            func(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd
+	WXTrimMaxLenApproxMode        func(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd
+	WXTrimMaxLenMode              func(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd
 	WXTrimMinID                   func(ctx context.Context, key string, minID string) *redis.IntCmd
 	WXTrimMinIDApprox             func(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd
+	WXTrimMinIDApproxMode         func(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd
+	WXTrimMinIDMode               func(ctx context.Context, key string, minID string, mode string) *redis.IntCmd
 	WZAdd                         func(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd
 	WZAddArgs                     func(ctx context.Context, key string, args redis.ZAddArgs) *redis.IntCmd
 	WZAddArgsIncr                 func(ctx context.Context, key string, args redis.ZAddArgs) *redis.FloatCmd
@@ -9685,8 +9868,20 @@ func (W _github_com_redis_go_redis_v9_UniversalClient) BitFieldRO(ctx context.Co
 func (W _github_com_redis_go_redis_v9_UniversalClient) BitOpAnd(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpAnd(ctx, destKey, keys...)
 }
+func (W _github_com_redis_go_redis_v9_UniversalClient) BitOpAndOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpAndOr(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_UniversalClient) BitOpDiff(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff(ctx, destKey, keys...)
+}
+func (W _github_com_redis_go_redis_v9_UniversalClient) BitOpDiff1(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpDiff1(ctx, destKey, keys...)
+}
 func (W _github_com_redis_go_redis_v9_UniversalClient) BitOpNot(ctx context.Context, destKey string, key string) *redis.IntCmd {
 	return W.WBitOpNot(ctx, destKey, key)
+}
+func (W _github_com_redis_go_redis_v9_UniversalClient) BitOpOne(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
+	return W.WBitOpOne(ctx, destKey, keys...)
 }
 func (W _github_com_redis_go_redis_v9_UniversalClient) BitOpOr(ctx context.Context, destKey string, keys ...string) *redis.IntCmd {
 	return W.WBitOpOr(ctx, destKey, keys...)
@@ -10918,6 +11113,9 @@ func (W _github_com_redis_go_redis_v9_UniversalClient) Watch(ctx context.Context
 func (W _github_com_redis_go_redis_v9_UniversalClient) XAck(ctx context.Context, stream string, group string, ids ...string) *redis.IntCmd {
 	return W.WXAck(ctx, stream, group, ids...)
 }
+func (W _github_com_redis_go_redis_v9_UniversalClient) XAckDel(ctx context.Context, stream string, group string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXAckDel(ctx, stream, group, mode, ids...)
+}
 func (W _github_com_redis_go_redis_v9_UniversalClient) XAdd(ctx context.Context, a *redis.XAddArgs) *redis.StringCmd {
 	return W.WXAdd(ctx, a)
 }
@@ -10935,6 +11133,9 @@ func (W _github_com_redis_go_redis_v9_UniversalClient) XClaimJustID(ctx context.
 }
 func (W _github_com_redis_go_redis_v9_UniversalClient) XDel(ctx context.Context, stream string, ids ...string) *redis.IntCmd {
 	return W.WXDel(ctx, stream, ids...)
+}
+func (W _github_com_redis_go_redis_v9_UniversalClient) XDelEx(ctx context.Context, stream string, mode string, ids ...string) *redis.SliceCmd {
+	return W.WXDelEx(ctx, stream, mode, ids...)
 }
 func (W _github_com_redis_go_redis_v9_UniversalClient) XGroupCreate(ctx context.Context, stream string, group string, start string) *redis.StatusCmd {
 	return W.WXGroupCreate(ctx, stream, group, start)
@@ -11002,11 +11203,23 @@ func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMaxLen(ctx context.C
 func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMaxLenApprox(ctx context.Context, key string, maxLen int64, limit int64) *redis.IntCmd {
 	return W.WXTrimMaxLenApprox(ctx, key, maxLen, limit)
 }
+func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMaxLenApproxMode(ctx context.Context, key string, maxLen int64, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenApproxMode(ctx, key, maxLen, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMaxLenMode(ctx context.Context, key string, maxLen int64, mode string) *redis.IntCmd {
+	return W.WXTrimMaxLenMode(ctx, key, maxLen, mode)
+}
 func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMinID(ctx context.Context, key string, minID string) *redis.IntCmd {
 	return W.WXTrimMinID(ctx, key, minID)
 }
 func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMinIDApprox(ctx context.Context, key string, minID string, limit int64) *redis.IntCmd {
 	return W.WXTrimMinIDApprox(ctx, key, minID, limit)
+}
+func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMinIDApproxMode(ctx context.Context, key string, minID string, limit int64, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDApproxMode(ctx, key, minID, limit, mode)
+}
+func (W _github_com_redis_go_redis_v9_UniversalClient) XTrimMinIDMode(ctx context.Context, key string, minID string, mode string) *redis.IntCmd {
+	return W.WXTrimMinIDMode(ctx, key, minID, mode)
 }
 func (W _github_com_redis_go_redis_v9_UniversalClient) ZAdd(ctx context.Context, key string, members ...redis.Z) *redis.IntCmd {
 	return W.WZAdd(ctx, key, members...)
