@@ -106,7 +106,7 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 	}); err != nil {
 		return err
 	}
-	_event, id, err := event.SubscribeEvent()
+	_event, id, err := event.Subscribe()
 	if err != nil {
 		return err
 	}
@@ -114,7 +114,7 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 		for {
 			select {
 			case <-ctx.Done():
-				event.UnSubscribeEvent(id)
+				event.Unsubscribe(id)
 				return
 			case e := <-_event:
 				_ = pubsub.PublishEvent(e)

@@ -26,9 +26,9 @@ require (
 	github.com/go-zookeeper/zk v1.0.4
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.4-0.20250319132907-e064f32e3674
-	github.com/imroc/req/v3 v3.54.1
+	github.com/imroc/req/v3 v3.54.2
 	github.com/kardianos/service v1.2.4
-	github.com/nikolalohinski/gonja/v2 v2.3.5
+	github.com/nikolalohinski/gonja/v2 v2.4.0
 	github.com/panjf2000/ants/v2 v2.11.3
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/pires/go-proxyproto v0.8.1

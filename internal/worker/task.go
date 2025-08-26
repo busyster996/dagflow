@@ -227,7 +227,7 @@ func (t *sTask) Stop() {
 	}()
 	if t.lcCancel != nil {
 		logx.Infoln(t.taskName, "Stop")
-		event.SendEventf("%s Stop", t.taskName)
+		event.Sendf("%s Stop", t.taskName)
 		t.lcCancel()
 	}
 	// 删除manager

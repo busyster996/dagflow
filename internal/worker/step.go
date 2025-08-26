@@ -61,7 +61,7 @@ func (s *sStep) RetryPolicy() *dagcuter.RetryPolicy {
 
 func (s *sStep) PreExecution(ctx context.Context, input map[string]any) error {
 	logx.Infoln(s.taskName, s.stepName, s.workspace, "PreExecution")
-	event.SendEventf("%s %s PreExecution", s.taskName, s.stepName)
+	event.Sendf("%s %s PreExecution", s.taskName, s.stepName)
 	return nil
 }
 
@@ -70,7 +70,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		return nil, err
 	}
 	logx.Infoln(s.taskName, s.stepName, s.workspace, "Execute")
-	event.SendEventf("%s %s Execute", s.taskName, s.stepName)
+	event.Sendf("%s %s Execute", s.taskName, s.stepName)
 	var err error
 	if err = s.stg.Update(&models.SStepUpdate{
 		State:    models.Pointer(models.StateRunning),
@@ -79,7 +79,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		STime:    models.Pointer(time.Now()),
 	}); err != nil {
 		logx.Errorln(s.taskName, s.stepName, err)
-		event.SendEventf("%s %s error %v", s.taskName, s.stepName, err)
+		event.Sendf("%s %s error %v", s.taskName, s.stepName, err)
 		return nil, err
 	}
 
@@ -97,7 +97,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		if _err := s.stg.Update(res); _err != nil {
 			logx.Errorln(_err)
 		}
-		event.SendEventf("%s %s %v", s.taskName, s.stepName, res.Message)
+		event.Sendf("%s %s %v", s.taskName, s.stepName, res.Message)
 	}()
 
 	// 日志写入
@@ -169,7 +169,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 
 func (s *sStep) PostExecution(ctx context.Context, output map[string]any) error {
 	logx.Infoln(s.taskName, s.stepName, s.workspace, "PostExecution")
-	event.SendEventf("%s %s PostExecution", s.taskName, s.stepName)
+	event.Sendf("%s %s PostExecution", s.taskName, s.stepName)
 	stepManager.Delete(s.Name())
 	return nil
 }
@@ -182,7 +182,7 @@ func (s *sStep) Stop() {
 	}()
 	if s.lcCancel != nil {
 		logx.Infoln(s.taskName, s.stepName, s.workspace, "Stop")
-		event.SendEventf("%s %s Stop", s.taskName, s.stepName)
+		event.Sendf("%s %s Stop", s.taskName, s.stepName)
 		s.lcCancel()
 	}
 	stepManager.Delete(s.Name())
