@@ -230,6 +230,10 @@ func (consumer *Consumer) startGoroutines(
 	return nil
 }
 
+func (consumer *Consumer) IsClosed() bool {
+	return consumer.getIsClosed()
+}
+
 func (consumer *Consumer) getIsClosed() bool {
 	consumer.isClosedMu.RLock()
 	defer consumer.isClosedMu.RUnlock()
