@@ -3710,6 +3710,7 @@ type _github_com_redis_go_redis_v9_Pipeliner struct {
 	WClusterShards                func(ctx context.Context) *redis.ClusterShardsCmd
 	WClusterSlaves                func(ctx context.Context, nodeID string) *redis.StringSliceCmd
 	WClusterSlots                 func(ctx context.Context) *redis.ClusterSlotsCmd
+	WCmds                         func() []redis.Cmder
 	WCommand                      func(ctx context.Context) *redis.CommandsInfoCmd
 	WCommandGetKeys               func(ctx context.Context, commands ...interface{}) *redis.StringSliceCmd
 	WCommandGetKeysAndFlags       func(ctx context.Context, commands ...interface{}) *redis.KeyFlagsCmd
@@ -4480,6 +4481,9 @@ func (W _github_com_redis_go_redis_v9_Pipeliner) ClusterSlaves(ctx context.Conte
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) ClusterSlots(ctx context.Context) *redis.ClusterSlotsCmd {
 	return W.WClusterSlots(ctx)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) Cmds() []redis.Cmder {
+	return W.WCmds()
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) Command(ctx context.Context) *redis.CommandsInfoCmd {
 	return W.WCommand(ctx)
