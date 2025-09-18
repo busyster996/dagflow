@@ -13,6 +13,7 @@ import (
 
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/worker/common"
+	"github.com/busyster996/dagflow/pkg/lualibs"
 )
 
 type sLua struct {
@@ -45,13 +46,31 @@ func (l *sLua) Run(ctx context.Context) (exit int64, err error) {
 		IncludeGoStackTrace: true,
 	})
 	defer vm.Close()
-	vm.PreloadModule("log", l.log)
+	l.loadLibs(vm)
 	vm.SetGlobal("params", luar.New(vm, params))
 	vm.SetGlobal("storage", luar.New(vm, l.storage))
 	if err = vm.DoString(content); err != nil {
 		return common.CodeFailed, err
 	}
 	return common.CodeSuccess, nil
+}
+
+func (l *sLua) loadLibs(vm *lua.LState) {
+	_printf := func(format string, args ...any) {
+		l.storage.Log().Write(fmt.Sprintf(format, args...))
+	}
+	_print := func(args ...any) {
+		l.storage.Log().Write(fmt.Sprint(args...))
+	}
+	_println := func(args ...any) {
+		l.storage.Log().Write(fmt.Sprintln(args...))
+	}
+	vm.SetGlobal("printf", luar.New(vm, _printf))
+	vm.SetGlobal("print", luar.New(vm, _print))
+	vm.SetGlobal("println", luar.New(vm, _println))
+
+	vm.PreloadModule("log", l.log)
+	lualibs.Preload(vm)
 }
 
 func (l *sLua) getParams() (gjson.Result, error) {

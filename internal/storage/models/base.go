@@ -32,7 +32,7 @@ var StateMap = map[State]string{
 }
 
 type SBase struct {
-	ID        int64     `json:"id" gorm:"primarykey;comment:ID"`
+	ID        uint64    `json:"id" gorm:"primarykey;comment:ID"`
 	CreatedAt time.Time `json:"created_at" gorm:"comment:创建时间"`
 	UpdatedAt time.Time `json:"updated_at" gorm:"comment:更新时间"`
 }

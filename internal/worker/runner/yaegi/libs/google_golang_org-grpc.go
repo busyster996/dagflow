@@ -95,7 +95,7 @@ func init() {
 		"UnaryInterceptor":                    reflect.ValueOf(grpc.UnaryInterceptor),
 		"UnknownServiceHandler":               reflect.ValueOf(grpc.UnknownServiceHandler),
 		"UseCompressor":                       reflect.ValueOf(grpc.UseCompressor),
-		"Version":                             reflect.ValueOf(constant.MakeFromLiteral("\"1.75.0\"", token.STRING, 0)),
+		"Version":                             reflect.ValueOf(constant.MakeFromLiteral("\"1.75.1\"", token.STRING, 0)),
 		"WaitForHandlers":                     reflect.ValueOf(grpc.WaitForHandlers),
 		"WaitForReady":                        reflect.ValueOf(grpc.WaitForReady),
 		"WithAuthority":                       reflect.ValueOf(grpc.WithAuthority),

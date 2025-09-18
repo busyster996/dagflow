@@ -3637,6 +3637,7 @@ type _github_com_redis_go_redis_v9_Pipeliner struct {
 	WBZMPop                       func(ctx context.Context, timeout time.Duration, order string, count int64, keys ...string) *redis.ZSliceWithKeyCmd
 	WBZPopMax                     func(ctx context.Context, timeout time.Duration, keys ...string) *redis.ZWithKeyCmd
 	WBZPopMin                     func(ctx context.Context, timeout time.Duration, keys ...string) *redis.ZWithKeyCmd
+	WBatchProcess                 func(ctx context.Context, cmd ...redis.Cmder) error
 	WBgRewriteAOF                 func(ctx context.Context) *redis.StatusCmd
 	WBgSave                       func(ctx context.Context) *redis.StatusCmd
 	WBitCount                     func(ctx context.Context, key string, bitCount *redis.BitCount) *redis.IntCmd
@@ -4262,6 +4263,9 @@ func (W _github_com_redis_go_redis_v9_Pipeliner) BZPopMax(ctx context.Context, t
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) BZPopMin(ctx context.Context, timeout time.Duration, keys ...string) *redis.ZWithKeyCmd {
 	return W.WBZPopMin(ctx, timeout, keys...)
+}
+func (W _github_com_redis_go_redis_v9_Pipeliner) BatchProcess(ctx context.Context, cmd ...redis.Cmder) error {
+	return W.WBatchProcess(ctx, cmd...)
 }
 func (W _github_com_redis_go_redis_v9_Pipeliner) BgRewriteAOF(ctx context.Context) *redis.StatusCmd {
 	return W.WBgRewriteAOF(ctx)

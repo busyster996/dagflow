@@ -46,10 +46,10 @@ func Set(kindID, nodeID int64) error {
 	return nil
 }
 
-func NextID(name string) (int64, error) {
+func NextID(name string) (uint64, error) {
 	id, err := g.next(name)
 	if err != nil {
 		return 0, err
 	}
-	return id.Int64(), nil
+	return id.Uint64(), nil
 }
