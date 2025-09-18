@@ -77,13 +77,7 @@ type apiService struct {
 }
 
 func (a *apiService) Start(s service.Service) error {
-	return server.Start(
-		a.ctx,
-		config.GetGormDB(),
-		viper.GetString("addr"),
-		viper.GetString("relative_path"),
-		viper.GetString("work_space"),
-	)
+	return server.Start(a.ctx)
 }
 
 func (a *apiService) Stop(s service.Service) error {

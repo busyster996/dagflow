@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 
 	"github.com/busyster996/dagflow/internal/pubsub"
 	"github.com/busyster996/dagflow/internal/storage"
@@ -27,28 +28,28 @@ var (
 	stepManager = new(sync.Map)
 )
 
-func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
+func Start(ctx context.Context) error {
 	logx.Infoln("number of workers", GetSize())
-	if err := storage.FixDatabase(nodeName); err != nil {
+	if err := storage.FixDatabase(viper.GetString("node_name")); err != nil {
 		return err
 	}
 
 	// 清理当前节点的残留文件
-	for _, t := range storage.NodeTasks(nodeName) {
+	for _, t := range storage.NodeTasks(viper.GetString("node_name")) {
 		// clear old script
-		utils.ClearDir(filepath.Join(scriptDir, t.Name()))
+		utils.ClearDir(filepath.Join(viper.GetString("script_dir"), t.Name()))
 
 		// clear old workspace
-		utils.ClearDir(filepath.Join(workerSpace, t.Name()))
+		utils.ClearDir(filepath.Join(viper.GetString("workspace_dir"), t.Name()))
 	}
 
 	// 打印当前支持的runner
 	logx.Infoln("runner", runner.ListAvailable())
-	if err := pubsub.SubscribeTask(ctx, nodeName, func(data string) {
+	if err := pubsub.SubscribeTask(ctx, viper.GetString("node_name"), func(data string) {
 		if data == "" {
 			return
 		}
-		t, err := newTask(data, workerSpace, scriptDir)
+		t, err := newTask(data, viper.GetString("workspace_dir"), viper.GetString("script_dir"))
 		if err != nil {
 			logx.Errorln(err)
 			return
@@ -64,12 +65,12 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 		if data == "" {
 			return
 		}
-		t, err := newTask(data, workerSpace, scriptDir)
+		t, err := newTask(data, viper.GetString("workspace_dir"), viper.GetString("script_dir"))
 		if err != nil {
 			logx.Errorln(err)
 			return
 		}
-		if err = t.updateNode(nodeName); err != nil {
+		if err = t.updateNode(viper.GetString("node_name")); err != nil {
 			logx.Errorln(err)
 			return
 		}
@@ -81,7 +82,7 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 		return err
 	}
 
-	if err := pubsub.SubscribeManager(ctx, nodeName, func(data string) {
+	if err := pubsub.SubscribeManager(ctx, viper.GetString("node_name"), func(data string) {
 		if !utils.ContainsInvisibleChar(data) {
 			return
 		}

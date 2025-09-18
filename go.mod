@@ -45,10 +45,10 @@ require (
 	github.com/spf13/viper v1.21.0
 	github.com/tidwall/gjson v1.18.0
 	github.com/tidwall/sjson v1.2.5
-	github.com/tjfoc/gmsm v1.4.1
 	github.com/tklauser/ps v0.0.3
 	github.com/tmc/scp v0.0.0-20170824174625-f7b48647feef
 	github.com/traefik/yaegi v0.16.1
+	github.com/tus/tusd/v2 v2.8.0
 	github.com/yargevad/filepathx v1.0.0
 	github.com/yuin/gopher-lua v1.1.1
 	go.uber.org/multierr v1.11.0
@@ -169,6 +169,7 @@ require (
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/tidwall/match v1.2.0 // indirect
 	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tus/lockfile v1.2.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect

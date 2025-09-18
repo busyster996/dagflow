@@ -77,21 +77,10 @@ type standaloneService struct {
 func (a *standaloneService) Start(s service.Service) error {
 	// 调整工作池的大小
 	worker.SetSize(viper.GetInt("pool_size"))
-	if err := worker.Start(
-		a.ctx,
-		viper.GetString("node_name"),
-		viper.GetString("workspace_dir"),
-		viper.GetString("script_dir"),
-	); err != nil {
+	if err := worker.Start(a.ctx); err != nil {
 		return err
 	}
-	return server.Start(
-		a.ctx,
-		config.GetGormDB(),
-		viper.GetString("addr"),
-		viper.GetString("relative_path"),
-		viper.GetString("workspace_dir"),
-	)
+	return server.Start(a.ctx)
 }
 
 func (a *standaloneService) Stop(s service.Service) error {
