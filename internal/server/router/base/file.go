@@ -12,7 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -90,7 +90,7 @@ func SaveFiles(g *gin.Context, path string) error {
 	var lock sync.Mutex
 
 	// ensure dir exist
-	if err = utils.EnsureDirExist(path); err != nil {
+	if err = utility.EnsureDirExist(path); err != nil {
 		logx.Errorln(err)
 		return err
 	}
@@ -122,7 +122,7 @@ func SaveFiles(g *gin.Context, path string) error {
 			// Process folder upload
 			if uploadFPath != "." {
 				path = filepath.Join(path, uploadFPath)
-				if err = utils.EnsureDirExist(path); err != nil {
+				if err = utility.EnsureDirExist(path); err != nil {
 					logx.Errorln(err)
 					return
 				}

@@ -16,8 +16,8 @@ import (
 // @Tags		默认
 // @Accept		application/json
 // @Produce		application/json
-// @Success		200 {object} types.SBase[types.SVersion]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SVersion]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/version [get]
 func version(c *gin.Context) {
 	base.Send(c, base.WithData(&types.SVersion{

@@ -13,7 +13,7 @@ import (
 	"github.com/spf13/viper"
 
 	"github.com/busyster996/dagflow/internal/config"
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/internal/worker"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
@@ -50,8 +50,8 @@ func New() *cobra.Command {
 				return err
 			}
 			svc, err := service.New(&workerService{cmd.Context()}, &service.Config{
-				Name:        utils.ServiceName,
-				DisplayName: utils.ServiceName,
+				Name:        utility.ServiceName,
+				DisplayName: utility.ServiceName,
 				Description: "Operating System Remote Executor Api",
 				Executable:  name,
 				Arguments:   os.Args[1:],
@@ -79,12 +79,7 @@ type workerService struct {
 func (w *workerService) Start(s service.Service) error {
 	// 调整工作池的大小
 	worker.SetSize(viper.GetInt("pool_size"))
-	return worker.Start(
-		w.ctx,
-		viper.GetString("node_name"),
-		viper.GetString("workspace_dir"),
-		viper.GetString("script_dir"),
-	)
+	return worker.Start(w.ctx)
 }
 
 func (w *workerService) Stop(s service.Service) error {

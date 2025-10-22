@@ -11,12 +11,13 @@ import (
 	"github.com/spf13/viper"
 	"go.uber.org/multierr"
 
+	"github.com/busyster996/dagflow/internal/common"
 	"github.com/busyster996/dagflow/internal/pubsub"
+	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
-	"github.com/busyster996/dagflow/internal/utils"
-	"github.com/busyster996/dagflow/internal/worker/common"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -150,7 +151,7 @@ func (ts *STaskService) review(task *types.STaskReq) error {
 	for _, v := range task.Env {
 		envKeys = append(envKeys, v.Name)
 	}
-	dup := utils.CheckDuplicate(envKeys)
+	dup := utility.CheckDuplicate(envKeys)
 	if dup != nil {
 		return fmt.Errorf("duplicate keys %v", dup)
 	}
@@ -247,7 +248,7 @@ func (ts *STaskService) Delete() error {
 		return errors.New("task not found")
 	}
 	// 尝试强杀任务
-	err = pubsub.PublishManager(task.Node, utils.JoinWithInvisibleChar(ts.name, "kill", "0"))
+	err = pubsub.PublishManager(task.Node, utility.JoinWithInvisibleChar(ts.name, "kill", "0"))
 	if err != nil {
 		logx.Errorln("task delete", ts.name, "kill error", err)
 		return err
@@ -260,14 +261,14 @@ func (ts *STaskService) Exist() bool {
 	return err == nil
 }
 
-func (ts *STaskService) Detail() (types.Code, *types.STaskRes, error) {
+func (ts *STaskService) Detail() (base.Code, *types.STaskRes, error) {
 	db := storage.Task(ts.name)
 	var task *models.STask
 	var err error
 	task, err = db.Get()
 	if err != nil {
 		logx.Errorln("task detail", ts.name, err)
-		return types.CodeFailed, nil, errors.New("task not found")
+		return base.CodeFailed, nil, errors.New("task not found")
 	}
 
 	data := &types.STaskRes{
@@ -315,7 +316,7 @@ func (ts *STaskService) Manager(action string, duration string) error {
 	if *task.State != models.StateRunning && *task.State != models.StatePending && *task.State != models.StatePaused {
 		return errors.New("task is no running")
 	}
-	return pubsub.PublishManager(task.Node, utils.JoinWithInvisibleChar(ts.name, action, duration))
+	return pubsub.PublishManager(task.Node, utility.JoinWithInvisibleChar(ts.name, action, duration))
 }
 
 func (ts *STaskService) Dump() (*types.STaskReq, error) {
@@ -369,17 +370,17 @@ func (ts *STaskService) Dump() (*types.STaskReq, error) {
 	return res, nil
 }
 
-func (ts *STaskService) Steps() (code types.Code, data types.SStepsRes, err error) {
+func (ts *STaskService) Steps() (code base.Code, data types.SStepsRes, err error) {
 	db := storage.Task(ts.name)
 	task, err := db.Get()
 	if err != nil {
 		logx.Errorln("task get steps", ts.name, err)
-		return types.CodeNoData, nil, err
+		return base.CodeNoData, nil, err
 	}
 
 	steps := db.StepList(storage.All)
 	if steps == nil {
-		return types.CodeNoData, nil, errors.New("steps not found")
+		return base.CodeNoData, nil, errors.New("steps not found")
 	}
 
 	// 用于分组和构建任务数据
@@ -390,7 +391,7 @@ func (ts *STaskService) Steps() (code types.Code, data types.SStepsRes, err erro
 		taskMap[step.Name] = &types.SStepRes{
 			Name:    step.Name,
 			State:   models.StateMap[*step.State],
-			Code:    *step.Code,
+			Code:    step.Code.Int64(),
 			Message: step.Message,
 			Time: &types.STimeRes{
 				Start: step.STimeStr(),

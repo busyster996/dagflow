@@ -10,12 +10,13 @@ import (
 	"github.com/segmentio/ksuid"
 	"gorm.io/datatypes"
 
+	"github.com/busyster996/dagflow/internal/common"
 	"github.com/busyster996/dagflow/internal/pubsub"
+	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
-	"github.com/busyster996/dagflow/internal/utils"
-	"github.com/busyster996/dagflow/internal/worker/common"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -70,12 +71,12 @@ func (ss *SStepService) review(step *types.SStepReq) error {
 	for _, v := range step.Env {
 		envKeys = append(envKeys, v.Name)
 	}
-	dup := utils.CheckDuplicate(envKeys)
+	dup := utility.CheckDuplicate(envKeys)
 	if dup != nil {
 		return fmt.Errorf("duplicate key %v", dup)
 	}
 
-	step.Depends = utils.RemoveDuplicate(step.Depends)
+	step.Depends = utility.RemoveDuplicate(step.Depends)
 	return nil
 }
 
@@ -99,7 +100,7 @@ func (ss *SStepService) saveStep(seqNo int64, step *types.SStepReq) (err error) 
 		Disable:  models.Pointer(step.Disable),
 		SStepUpdate: models.SStepUpdate{
 			Message:  "the step is waiting to be scheduled for execution",
-			Code:     models.Pointer(int64(0)),
+			Code:     models.Pointer(common.ExecCode(0)),
 			State:    models.Pointer(models.StatePending),
 			OldState: models.Pointer(models.StatePending),
 		},
@@ -138,18 +139,18 @@ func (ss *SStepService) saveStep(seqNo int64, step *types.SStepReq) (err error) 
 	return
 }
 
-func (ss *SStepService) Detail() (types.Code, *types.SStepRes, error) {
+func (ss *SStepService) Detail() (base.Code, *types.SStepRes, error) {
 	stepStorage := storage.Task(ss.taskName).Step(ss.stepName)
 	step, err := stepStorage.Get()
 	if err != nil {
 		logx.Errorln("step detail", ss.taskName, ss.stepName, err)
-		return types.CodeFailed, nil, errors.New("step not found")
+		return base.CodeFailed, nil, errors.New("step not found")
 	}
 	data := &types.SStepRes{
 		Name:    step.Name,
 		Desc:    step.Desc,
 		State:   models.StateMap[*step.State],
-		Code:    *step.Code,
+		Code:    step.Code.Int64(),
 		Message: step.Message,
 		Timeout: step.Timeout,
 		Disable: *step.Disable,
@@ -176,7 +177,7 @@ func (ss *SStepService) Detail() (types.Code, *types.SStepRes, error) {
 			Value: env.Value,
 		})
 	}
-	return types.Code(data.Code), data, nil
+	return base.Code(data.Code), data, nil
 }
 
 func (ss *SStepService) Manager(action string, duration string) error {
@@ -196,22 +197,22 @@ func (ss *SStepService) Manager(action string, duration string) error {
 	if *step.State != models.StateRunning && *step.State != models.StatePending && *step.State != models.StatePaused {
 		return errors.New("step is no running")
 	}
-	return pubsub.PublishManager(task.Node, utils.JoinWithInvisibleChar(ss.taskName, ss.stepName, action, duration))
+	return pubsub.PublishManager(task.Node, utility.JoinWithInvisibleChar(ss.taskName, ss.stepName, action, duration))
 }
 
 func (ss *SStepService) Delete() error {
 	return storage.Task(ss.taskName).Step(ss.stepName).ClearAll()
 }
 
-func (ss *SStepService) Log() (types.Code, types.SStepLogsRes, error) {
+func (ss *SStepService) Log() (base.Code, types.SStepLogsRes, error) {
 	step, err := storage.Task(ss.taskName).Step(ss.stepName).Get()
 	if err != nil {
 		logx.Errorln("step log", ss.taskName, ss.stepName, err)
-		return types.CodeFailed, nil, errors.New("step not found")
+		return base.CodeFailed, nil, errors.New("step not found")
 	}
 	switch *step.State {
 	case models.StatePending:
-		return types.CodePending, types.SStepLogsRes{
+		return base.CodePending, types.SStepLogsRes{
 			{
 				Timestamp: time.Now().UnixNano(),
 				Line:      1,
@@ -219,7 +220,7 @@ func (ss *SStepService) Log() (types.Code, types.SStepLogsRes, error) {
 			},
 		}, errors.New(step.Message)
 	case models.StatePaused:
-		return types.CodePaused, types.SStepLogsRes{
+		return base.CodePaused, types.SStepLogsRes{
 			{
 				Timestamp: time.Now().UnixNano(),
 				Line:      1,
@@ -235,10 +236,10 @@ func (ss *SStepService) Log() (types.Code, types.SStepLogsRes, error) {
 func (ss *SStepService) log(latestLine *int64) (res types.SStepLogsRes, done bool) {
 	logs := storage.Task(ss.taskName).Step(ss.stepName).Log().List(latestLine)
 	for _, v := range logs {
-		if v.Content == common.ConsoleStart {
+		if v.Content == common.ExecConsoleStart {
 			continue
 		}
-		if v.Content == common.ConsoleDone {
+		if v.Content == common.ExecConsoleDone {
 			done = true
 			continue
 		}
@@ -255,7 +256,7 @@ func (ss *SStepService) log(latestLine *int64) (res types.SStepLogsRes, done boo
 	return
 }
 
-type outputFn func(code types.Code, data types.SStepLogsRes, err error) error
+type outputFn func(code base.Code, data types.SStepLogsRes, err error) error
 type stateHandlerFn func(output outputFn, latest *int64) (bool, error)
 
 func (ss *SStepService) LogStream(ctx context.Context, output outputFn) error {
@@ -275,13 +276,13 @@ func (ss *SStepService) LogStream(ctx context.Context, output outputFn) error {
 	}
 	// 状态处理函数映射
 	handlers := map[models.State]stateHandlerFn{
-		models.StatePending: ss.createOnceHandler(onceMap[models.StatePending], types.CodePending, "step is pending"),
-		models.StatePaused:  ss.createOnceHandler(onceMap[models.StatePaused], types.CodePaused, "step is paused"),
-		models.StateUnknown: ss.createOnceHandler(onceMap[models.StateUnknown], types.CodeNoData, "step status unknown"),
+		models.StatePending: ss.createOnceHandler(onceMap[models.StatePending], base.CodePending, "step is pending"),
+		models.StatePaused:  ss.createOnceHandler(onceMap[models.StatePaused], base.CodePaused, "step is paused"),
+		models.StateUnknown: ss.createOnceHandler(onceMap[models.StateUnknown], base.CodeNoData, "step status unknown"),
 		models.StateRunning: ss.handleRunningState,
-		models.StateStopped: ss.handleFinalState(types.CodeSuccess),
-		models.StateFailed:  ss.handleFinalState(types.CodeFailed),
-		models.StateSkipped: ss.handleFinalState(types.CodeSkipped),
+		models.StateStopped: ss.handleFinalState(base.CodeSuccess),
+		models.StateFailed:  ss.handleFinalState(base.CodeFailed),
+		models.StateSkipped: ss.handleFinalState(base.CodeSkipped),
 	}
 
 	for {
@@ -318,7 +319,7 @@ func (ss *SStepService) LogStream(ctx context.Context, output outputFn) error {
 	}
 }
 
-func (ss *SStepService) createOnceHandler(once *sync.Once, code types.Code, message string) stateHandlerFn {
+func (ss *SStepService) createOnceHandler(once *sync.Once, code base.Code, message string) stateHandlerFn {
 	return func(output outputFn, latest *int64) (bool, error) {
 		once.Do(func() {
 			_ = output(code, types.SStepLogsRes{
@@ -335,7 +336,7 @@ func (ss *SStepService) createOnceHandler(once *sync.Once, code types.Code, mess
 
 func (ss *SStepService) handleRunningState(output outputFn, latestLine *int64) (bool, error) {
 	res, done := ss.log(latestLine)
-	err := output(types.CodeRunning, res, errors.New("in progress"))
+	err := output(base.CodeRunning, res, errors.New("in progress"))
 	if err != nil {
 		logx.Errorln("step logstream", ss.taskName, ss.stepName, err)
 		return false, err
@@ -346,7 +347,7 @@ func (ss *SStepService) handleRunningState(output outputFn, latestLine *int64) (
 	return true, nil
 }
 
-func (ss *SStepService) handleFinalState(code types.Code) stateHandlerFn {
+func (ss *SStepService) handleFinalState(code base.Code) stateHandlerFn {
 	return func(output outputFn, latestLine *int64) (bool, error) {
 		db := storage.Task(ss.taskName).Step(ss.stepName)
 		step, err := db.Get()
@@ -356,7 +357,7 @@ func (ss *SStepService) handleFinalState(code types.Code) stateHandlerFn {
 		}
 		res, _ := ss.log(latestLine)
 		var errMsg error
-		if code == types.CodeFailed {
+		if code == base.CodeFailed {
 			errMsg = fmt.Errorf("exit code: %d", step.Code)
 			if step.Message != "" {
 				errMsg = errors.New(step.Message)

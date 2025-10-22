@@ -16,19 +16,19 @@ import (
 // @Accept		application/json
 // @Produce		application/json
 // @Param		task body types.STaskReq true "任务内容"
-// @Success		200 {object} types.SBase[types.STaskCreateRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.STaskCreateRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/task [post]
 func Post(c *gin.Context) {
 	var req = new(types.STaskReq)
 	if err := c.ShouldBind(req); err != nil {
 		logx.Errorln(err)
-		base.Send(c, base.WithCode[any](types.CodeFailed).WithError(err))
+		base.Send(c, base.WithCode[any](base.CodeFailed).WithError(err))
 		return
 	}
 
 	if err := service.Task(req.Name).Create(req); err != nil {
-		base.Send(c, base.WithCode[any](types.CodeFailed).WithError(err))
+		base.Send(c, base.WithCode[any](base.CodeFailed).WithError(err))
 		return
 	}
 

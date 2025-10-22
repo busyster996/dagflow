@@ -1,17 +1,13 @@
 package router
 
 import (
-	"path"
-
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
 
 	"github.com/busyster996/dagflow/internal/server/api/v1/event"
-	"github.com/busyster996/dagflow/internal/server/api/v1/files"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline"
 	"github.com/busyster996/dagflow/internal/server/api/v1/pipeline/build"
 	"github.com/busyster996/dagflow/internal/server/api/v1/task"
@@ -19,9 +15,7 @@ import (
 	"github.com/busyster996/dagflow/internal/server/api/v1/task/workspace"
 	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/router/middleware/zap"
-	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/pkg/info"
-	"github.com/busyster996/dagflow/pkg/logx"
 )
 
 // New
@@ -39,7 +33,7 @@ import (
 // @contact.url		https://github.com/busyster996/dagflow/issues
 // @license.name	GPL-3.0
 // @license.url		https://github.com/busyster996/dagflow/blob/main/LICENSE
-func New(gdb *gorm.DB, uploadDir string) (*gin.Engine, error) {
+func New() (*gin.Engine, error) {
 	router := gin.New()
 	router.Use(
 		zap.Logger,
@@ -101,20 +95,11 @@ func New(gdb *gorm.DB, uploadDir string) (*gin.Engine, error) {
 		apiV1.GET("/task/:task/step/:step", step.Detail)
 		apiV1.PUT("/task/:task/step/:step", step.Manager)
 		apiV1.GET("/task/:task/step/:step/log", step.Log)
-
-		// tus file server
-		if err := files.New(uploadDir, path.Join(apiV1.BasePath(), "/files/"), gdb); err != nil {
-			logx.Errorln(err)
-			return nil, err
-		}
-
-		apiV1.Any("/files", files.Handler())
-		apiV1.Any("/files/*any", files.Handler())
 	}
 
 	// no method
 	router.NoMethod(func(c *gin.Context) {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("method not allowed")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("method not allowed")))
 	})
 
 	// no route

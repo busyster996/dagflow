@@ -21,7 +21,7 @@ func getDefaultPublisherOptions() PublisherOptions {
 			Internal:   false,
 			NoWait:     false,
 			Passive:    false,
-			Args:       Table{},
+			Args:       make(Table),
 			Declare:    false,
 		},
 		Logger:      stdDebugLogger{},

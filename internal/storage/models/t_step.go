@@ -4,6 +4,8 @@ import (
 	"time"
 
 	"gorm.io/datatypes"
+
+	"github.com/busyster996/dagflow/internal/common"
 )
 
 type SRetryPolicy struct {
@@ -26,6 +28,7 @@ type SStep struct {
 	SeqNo       int64                            `json:"seq_no,omitempty" gorm:"index;not null;default:0;comment:序号"`
 	Timeout     time.Duration                    `json:"timeout,omitempty" gorm:"not null;default:86400000000000;comment:超时时间"`
 	Disable     *bool                            `json:"disable,omitempty" gorm:"not null;default:false;comment:禁用"`
+	Metadata    datatypes.JSONMap                `json:"metadata,omitempty" gorm:"元数据"`
 	SStepUpdate
 }
 
@@ -34,12 +37,12 @@ func (s *SStep) TableName() string {
 }
 
 type SStepUpdate struct {
-	Message  string     `json:"message,omitempty" gorm:"comment:消息"`
-	State    *State     `json:"state,omitempty" gorm:"index;not null;default:0;comment:状态"`
-	OldState *State     `json:"old_state,omitempty" gorm:"index;not null;default:0;comment:旧状态"`
-	Code     *int64     `json:"code,omitempty" gorm:"index;not null;default:0;comment:退出码"`
-	STime    *time.Time `json:"s_time,omitempty" gorm:"comment:开始时间"`
-	ETime    *time.Time `json:"e_time,omitempty" gorm:"comment:结束时间"`
+	Message  string           `json:"message,omitempty" gorm:"comment:消息"`
+	State    *State           `json:"state,omitempty" gorm:"index;not null;default:0;comment:状态"`
+	OldState *State           `json:"old_state,omitempty" gorm:"index;not null;default:0;comment:旧状态"`
+	Code     *common.ExecCode `json:"code,omitempty" gorm:"index;not null;default:0;comment:退出码"`
+	STime    *time.Time       `json:"s_time,omitempty" gorm:"comment:开始时间"`
+	ETime    *time.Time       `json:"e_time,omitempty" gorm:"comment:结束时间"`
 }
 
 func (s *SStepUpdate) STimeStr() string {

@@ -72,6 +72,8 @@ func staticFileContent(path string) ([]byte, error) {
 	if err != nil || fi.IsDir() {
 		return nil, errors.New("not found")
 	}
-	defer file.Close()
+	defer func(file fs.File) {
+		_ = file.Close()
+	}(file)
 	return fs.ReadFile(fileSys, path)
 }

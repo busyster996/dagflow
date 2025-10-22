@@ -23,8 +23,8 @@ import (
 // @Produce		application/json
 // @Param		page query int false "页码" default(1)
 // @Param		size query int false "分页大小" default(100)
-// @Success		200 {object} types.SBase[types.SPipelineListRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SPipelineListRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/pipeline [get]
 func List(c *gin.Context) {
 	var req = &types.SPageReq{
@@ -41,7 +41,7 @@ func List(c *gin.Context) {
 		ws, err = base.Upgrade(c.Writer, c.Request)
 		if err != nil {
 			logx.Errorln(err)
-			base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 			return
 		}
 	}

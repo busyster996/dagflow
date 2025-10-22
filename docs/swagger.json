@@ -30,15 +30,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -75,15 +71,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SPipelineListRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -113,15 +105,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -151,15 +139,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SPipelineRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -196,15 +180,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -232,15 +212,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -284,15 +260,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SPipelineBuildListRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -329,15 +301,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_STaskCreateRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -374,15 +342,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SPipelineBuildRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -417,15 +381,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -460,15 +420,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -505,15 +461,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_STaskListDetailRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -543,15 +495,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_STaskCreateRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -581,15 +529,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_STaskRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -637,15 +581,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -673,15 +613,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -711,15 +647,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SStepsRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -756,15 +688,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SStepRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -819,15 +747,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -864,15 +788,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SStepLogsRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -908,15 +828,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SFileListRes"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -957,15 +873,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             },
@@ -999,15 +911,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -1028,15 +936,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SHealthyz"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -1086,15 +990,11 @@
                 "responses": {
                     "200": {
                         "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-types_SVersion"
-                        }
+                        "schema": {}
                     },
                     "500": {
                         "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/types.SBase-any"
-                        }
+                        "schema": {}
                     }
                 }
             }
@@ -1103,6 +1003,7 @@
     "definitions": {
         "time.Duration": {
             "type": "integer",
+            "format": "int64",
             "enum": [
                 1,
                 1000,
@@ -1120,269 +1021,6 @@
                 "Hour"
             ]
         },
-        "types.Code": {
-            "type": "integer",
-            "enum": [
-                0,
-                1001,
-                1002,
-                1003,
-                1004,
-                1005,
-                1006
-            ],
-            "x-enum-varnames": [
-                "CodeSuccess",
-                "CodeRunning",
-                "CodeFailed",
-                "CodeNoData",
-                "CodePending",
-                "CodePaused",
-                "CodeSkipped"
-            ]
-        },
-        "types.SBase-any": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {},
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SFileListRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SFileListRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SHealthyz": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SHealthyz"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SPipelineBuildListRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SPipelineBuildListRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SPipelineBuildRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SPipelineBuildRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SPipelineListRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SPipelineListRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SPipelineRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SPipelineRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SStepLogsRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SStepLogRes"
-                    }
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SStepRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SStepRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SStepsRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SStepRes"
-                    }
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_STaskCreateRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.STaskCreateRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_STaskListDetailRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.STaskListDetailRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_STaskRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.STaskRes"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SBase-types_SVersion": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "$ref": "#/definitions/types.Code"
-                },
-                "data": {
-                    "$ref": "#/definitions/types.SVersion"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "timestamp": {
-                    "type": "integer"
-                }
-            }
-        },
         "types.SEnv": {
             "type": "object",
             "required": [
@@ -1397,114 +1035,12 @@
                 }
             }
         },
-        "types.SFileListRes": {
-            "type": "object",
-            "properties": {
-                "files": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SFileRes"
-                    }
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SFileRes": {
-            "type": "object",
-            "properties": {
-                "isDir": {
-                    "type": "boolean"
-                },
-                "modTime": {
-                    "type": "integer"
-                },
-                "mode": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "path": {
-                    "type": "string"
-                },
-                "size": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SHealthyz": {
-            "type": "object",
-            "properties": {
-                "client": {
-                    "type": "string"
-                },
-                "server": {
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.SPageRes": {
-            "type": "object",
-            "properties": {
-                "current": {
-                    "type": "integer"
-                },
-                "size": {
-                    "type": "integer"
-                },
-                "total": {
-                    "type": "integer"
-                }
-            }
-        },
-        "types.SPipelineBuildListRes": {
-            "type": "object",
-            "properties": {
-                "page": {
-                    "$ref": "#/definitions/types.SPageRes"
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SPipelineBuildRes"
-                    }
-                }
-            }
-        },
         "types.SPipelineBuildReq": {
             "type": "object",
             "properties": {
                 "params": {
                     "type": "object",
                     "additionalProperties": {}
-                }
-            }
-        },
-        "types.SPipelineBuildRes": {
-            "type": "object",
-            "properties": {
-                "message": {
-                    "type": "string"
-                },
-                "params": {
-                    "type": "string"
-                },
-                "pipelineName": {
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                },
-                "taskName": {
-                    "type": "string"
-                },
-                "time": {
-                    "$ref": "#/definitions/types.STimeRes"
                 }
             }
         },
@@ -1534,43 +1070,6 @@
                 "tplType": {
                     "type": "string",
                     "example": "jinja2"
-                }
-            }
-        },
-        "types.SPipelineListRes": {
-            "type": "object",
-            "properties": {
-                "page": {
-                    "$ref": "#/definitions/types.SPageRes"
-                },
-                "pipelines": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SPipelineRes"
-                    }
-                }
-            }
-        },
-        "types.SPipelineRes": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "desc": {
-                    "type": "string"
-                },
-                "disable": {
-                    "type": "boolean"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "params": {
-                    "type": "string"
-                },
-                "tplType": {
-                    "type": "string"
                 }
             }
         },
@@ -1613,20 +1112,6 @@
                 },
                 "multiplier": {
                     "type": "number"
-                }
-            }
-        },
-        "types.SStepLogRes": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
-                },
-                "line": {
-                    "type": "integer"
-                },
-                "timestamp": {
-                    "type": "integer"
                 }
             }
         },
@@ -1678,87 +1163,6 @@
                 }
             }
         },
-        "types.SStepRes": {
-            "type": "object",
-            "properties": {
-                "action": {
-                    "type": "string"
-                },
-                "code": {
-                    "type": "integer"
-                },
-                "content": {
-                    "type": "string"
-                },
-                "depends": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "desc": {
-                    "type": "string"
-                },
-                "disable": {
-                    "type": "boolean"
-                },
-                "env": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SEnv"
-                    }
-                },
-                "message": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "retryPolicy": {
-                    "$ref": "#/definitions/types.SRetryPolicy"
-                },
-                "rule": {
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                },
-                "time": {
-                    "$ref": "#/definitions/types.STimeRes"
-                },
-                "timeout": {
-                    "$ref": "#/definitions/time.Duration"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.STaskCreateRes": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "name": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.STaskListDetailRes": {
-            "type": "object",
-            "properties": {
-                "page": {
-                    "$ref": "#/definitions/types.SPageRes"
-                },
-                "tasks": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.STaskRes"
-                    }
-                }
-            }
-        },
         "types.STaskReq": {
             "type": "object",
             "required": [
@@ -1797,117 +1201,6 @@
                 },
                 "timeout": {
                     "$ref": "#/definitions/time.Duration"
-                }
-            }
-        },
-        "types.STaskRes": {
-            "type": "object",
-            "properties": {
-                "count": {
-                    "type": "integer"
-                },
-                "desc": {
-                    "type": "string"
-                },
-                "disable": {
-                    "type": "boolean"
-                },
-                "env": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/types.SEnv"
-                    }
-                },
-                "kind": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "node": {
-                    "type": "string"
-                },
-                "state": {
-                    "type": "string"
-                },
-                "time": {
-                    "$ref": "#/definitions/types.STimeRes"
-                },
-                "timeout": {
-                    "$ref": "#/definitions/time.Duration"
-                }
-            }
-        },
-        "types.STimeRes": {
-            "type": "object",
-            "properties": {
-                "end": {
-                    "type": "string"
-                },
-                "start": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.SVersion": {
-            "type": "object",
-            "properties": {
-                "buildTime": {
-                    "type": "string"
-                },
-                "git": {
-                    "$ref": "#/definitions/types.SVersionGit"
-                },
-                "go": {
-                    "$ref": "#/definitions/types.SVersionGO"
-                },
-                "user": {
-                    "$ref": "#/definitions/types.SVersionUser"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.SVersionGO": {
-            "type": "object",
-            "properties": {
-                "arch": {
-                    "type": "string"
-                },
-                "os": {
-                    "type": "string"
-                },
-                "version": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.SVersionGit": {
-            "type": "object",
-            "properties": {
-                "branch": {
-                    "type": "string"
-                },
-                "commit": {
-                    "type": "string"
-                },
-                "url": {
-                    "type": "string"
-                }
-            }
-        },
-        "types.SVersionUser": {
-            "type": "object",
-            "properties": {
-                "email": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
                 }
             }
         }

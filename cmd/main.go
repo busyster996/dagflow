@@ -12,7 +12,7 @@ import (
 	"github.com/busyster996/dagflow/cmd/api"
 	"github.com/busyster996/dagflow/cmd/standalone"
 	"github.com/busyster996/dagflow/cmd/worker"
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/info"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
@@ -52,7 +52,7 @@ func main() {
 
 	cmd.PersistentFlags().Int64("node_id", 0, "node id")
 	cmd.PersistentFlags().Int64("kind_id", 0, "kind id")
-	cmd.PersistentFlags().String("root_dir", utils.DefaultDir(), "root directory")
+	cmd.PersistentFlags().String("root_dir", utility.DefaultDir(), "root directory")
 	cmd.PersistentFlags().String("log_output", "file", "log output [file,stdout]")
 	cmd.PersistentFlags().String("log_level", "debug", "log level [debug,info,warn,error]")
 	cmd.PersistentFlags().Bool("enable_self_update", true, "enable self update")

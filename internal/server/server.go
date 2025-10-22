@@ -4,6 +4,8 @@ import (
 	"context"
 	"net"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -12,12 +14,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/pires/go-proxyproto"
 	"github.com/pkg/errors"
-	"gorm.io/gorm"
+	"github.com/segmentio/ksuid"
+	"github.com/spf13/viper"
+	"github.com/tus/tusd/v2/pkg/filelocker"
+	"github.com/tus/tusd/v2/pkg/filestore"
+	tusd "github.com/tus/tusd/v2/pkg/handler"
 
 	"github.com/busyster996/dagflow/internal/server/router"
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/server/tus/redislocker"
+	"github.com/busyster996/dagflow/internal/server/tus/redisstore"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/listeners"
 	"github.com/busyster996/dagflow/pkg/logx"
+	"github.com/busyster996/dagflow/pkg/sockets"
 )
 
 var server *sServer
@@ -27,6 +36,7 @@ type sServer struct {
 	cancel    context.CancelFunc
 	listeners []net.Listener
 	http      *http.Server
+	tusd      *tusd.Handler
 	wg        *sync.WaitGroup
 }
 
@@ -44,7 +54,7 @@ func Close() error {
 	return nil
 }
 
-func Start(ctx context.Context, db *gorm.DB, addr, relativePath, workspace string) error {
+func Start(ctx context.Context) error {
 	if server != nil {
 		return errors.New("server is running")
 	}
@@ -52,20 +62,27 @@ func Start(ctx context.Context, db *gorm.DB, addr, relativePath, workspace strin
 		wg: new(sync.WaitGroup),
 	}
 	server.ctx, server.cancel = context.WithCancel(ctx)
-	return server.startServer(db, addr, workspace, relativePath)
+	return server.startServer()
 }
 
-func (p *sServer) startServer(db *gorm.DB, addr, workspace string, relativePath string) error {
+func (p *sServer) startServer() error {
 	gin.DisableConsoleColor()
 	gin.SetMode(gin.ReleaseMode)
-	handler, err := router.New(db, workspace)
+	handler, err := router.New()
 	if err != nil {
 		logx.Errorln(err)
 		return err
 	}
 
+	if err = server.newTusSvr("/api/v1/files/"); err != nil {
+		logx.Errorln(err)
+		return err
+	}
+	handler.Any("/api/v1/files", gin.WrapH(http.StripPrefix("/api/v1/files", p.tusd)))
+	handler.Any("/api/v1/files/*any", gin.WrapH(http.StripPrefix("/api/v1/files/", p.tusd)))
+
 	p.http = &http.Server{
-		Handler:           http.StripPrefix(relativePath, handler),
+		Handler:           http.StripPrefix(viper.GetString("relative_path"), handler),
 		ReadHeaderTimeout: 120 * time.Second,
 		IdleTimeout:       120 * time.Second,
 		MaxHeaderBytes:    15 << 20, // 15MB
@@ -77,8 +94,8 @@ func (p *sServer) startServer(db *gorm.DB, addr, workspace string, relativePath 
 	_ = retry.Do(
 		func() error {
 			if err = p.loadListeners([]string{
-				addr,
-				utils.PipeName(),
+				viper.GetString("addr"),
+				sockets.DefaultPipePath(utility.ServiceName),
 			}); err != nil {
 				logx.Errorln(err)
 				return err
@@ -120,7 +137,7 @@ func (p *sServer) loadListeners(hosts []string) error {
 			proto = "tcp"
 			addr = host
 		}
-		ln, err := listeners.Init(proto, addr, nil)
+		ln, err := listeners.New(p.ctx, proto, addr, nil)
 		if err != nil {
 			logx.Errorln(err)
 			return err
@@ -147,4 +164,74 @@ func (p *sServer) close() {
 			_ = ln.Close()
 		}
 	}
+}
+
+func (p *sServer) newTusSvr(basePath string) error {
+	_ = os.MkdirAll(viper.GetString(""), os.ModeDir)
+	composer := tusd.NewStoreComposer()
+	if viper.GetString("redis_uri") != "" {
+		_store, err := redisstore.New(viper.GetString("workspace_dir"), viper.GetString("redis_uri"))
+		if err != nil {
+			logx.Errorln(err)
+			return err
+		}
+		_locker, err := redislocker.New(viper.GetString("redis_uri"))
+		if err != nil {
+			logx.Errorln(err)
+			return err
+		}
+		_store.UseIn(composer)
+		_locker.UseIn(composer)
+	} else {
+		_store := filestore.New(viper.GetString("workspace_dir"))
+		_locker := filelocker.New(viper.GetString("workspace_dir"))
+		_store.UseIn(composer)
+		_locker.UseIn(composer)
+	}
+	var err error
+	p.tusd, err = tusd.NewHandler(tusd.Config{
+		BasePath:      basePath,
+		StoreComposer: composer,
+		PreUploadCreateCallback: func(hook tusd.HookEvent) (tusd.HTTPResponse, tusd.FileInfoChanges, error) {
+			id := ksuid.New().String()
+			taskID, ok := hook.Upload.MetaData["task_id"]
+			if !ok {
+				return tusd.HTTPResponse{
+					StatusCode: http.StatusBadRequest,
+					Body:       "task_id is required",
+				}, tusd.FileInfoChanges{}, errors.New("task_id is required")
+			}
+			return tusd.HTTPResponse{}, tusd.FileInfoChanges{
+				ID: filepath.Join(taskID, id),
+			}, nil
+		},
+		PreFinishResponseCallback: func(hook tusd.HookEvent) (tusd.HTTPResponse, error) {
+			if hook.Upload.IsFinal {
+				filename := hook.Upload.MetaData["filename"]
+				if filename == "" {
+					filename = filepath.Base(hook.Upload.ID)
+				}
+
+				src := filepath.Join(os.TempDir(), ".tusd", hook.Upload.ID)
+				dst := filepath.Join(viper.GetString("workspace_dir"), filepath.Dir(hook.Upload.ID), filename)
+				if err = utility.CopyFile(src, dst); err != nil {
+					return tusd.HTTPResponse{
+						StatusCode: http.StatusInternalServerError,
+						Body:       "failed to copy file",
+					}, err
+				}
+			}
+			return tusd.HTTPResponse{
+				Header: map[string]string{
+					"ID":   filepath.Base(hook.Upload.ID),
+					"Path": filepath.Dir(hook.Upload.ID),
+				},
+			}, nil
+		},
+	})
+	if err != nil {
+		logx.Errorln(err)
+		return err
+	}
+	return nil
 }

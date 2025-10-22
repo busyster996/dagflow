@@ -2,16 +2,19 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/datatypes"
 )
 
 type STask struct {
 	SBase
-	Kind    string        `json:"kind,omitempty" gorm:"size:256;index;comment:类型"`
-	Name    string        `json:"name,omitempty" gorm:"size:256;uniqueIndex;not null;comment:名称"`
-	Desc    string        `json:"desc,omitempty" gorm:"comment:描述"`
-	Node    string        `json:"node,omitempty" gorm:"size:256;index;default:null;comment:节点"`
-	Timeout time.Duration `json:"timeout,omitempty" gorm:"not null;default:86400000000000;comment:超时时间"`
-	Disable *bool         `json:"disable,omitempty" gorm:"not null;default:false;comment:禁用"`
+	Kind     string            `json:"kind,omitempty" gorm:"size:256;index;comment:类型"`
+	Name     string            `json:"name,omitempty" gorm:"size:256;uniqueIndex;not null;comment:名称"`
+	Desc     string            `json:"desc,omitempty" gorm:"comment:描述"`
+	Node     string            `json:"node,omitempty" gorm:"size:256;index;default:null;comment:节点"`
+	Timeout  time.Duration     `json:"timeout,omitempty" gorm:"not null;default:86400000000000;comment:超时时间"`
+	Disable  *bool             `json:"disable,omitempty" gorm:"not null;default:false;comment:禁用"`
+	Metadata datatypes.JSONMap `json:"metadata,omitempty" gorm:"元数据"`
 	STaskUpdate
 }
 

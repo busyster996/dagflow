@@ -28,7 +28,6 @@ builds:
       - "windows"
       - "darwin"
     goarch:
-      - "386"
       - "arm64"
       - "amd64"
     goamd64:
@@ -54,7 +53,6 @@ builds:
       - "windows"
       - "darwin"
     goarch:
-      - "386"
       - "arm64"
       - "amd64"
     goamd64:
@@ -66,3 +64,9 @@ archives:
 
 release:
   disable: true
+
+upx:
+  - enabled: true
+    compress: best
+    lzma: true
+    

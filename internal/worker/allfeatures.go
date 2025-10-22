@@ -3,14 +3,14 @@
 package worker
 
 import (
-	_ "github.com/busyster996/dagflow/internal/worker/runner/docker"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/git"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/kubectl"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/lua"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/scp"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/sftp"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/ssh"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/svn"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/wasm"
-	_ "github.com/busyster996/dagflow/internal/worker/runner/yaegi"
+	_ "github.com/busyster996/dagflow/internal/runner/docker"
+	_ "github.com/busyster996/dagflow/internal/runner/git"
+	_ "github.com/busyster996/dagflow/internal/runner/kubectl"
+	_ "github.com/busyster996/dagflow/internal/runner/lua"
+	_ "github.com/busyster996/dagflow/internal/runner/scp"
+	_ "github.com/busyster996/dagflow/internal/runner/sftp"
+	_ "github.com/busyster996/dagflow/internal/runner/ssh"
+	_ "github.com/busyster996/dagflow/internal/runner/svn"
+	_ "github.com/busyster996/dagflow/internal/runner/wasm"
+	_ "github.com/busyster996/dagflow/internal/runner/yaegi"
 )

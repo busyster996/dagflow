@@ -17,7 +17,7 @@ func getDefaultConsumerOptions(queueName string) ConsumerOptions {
 			Exclusive: false,
 			NoWait:    false,
 			NoLocal:   false,
-			Args:      Table{},
+			Args:      make(Table),
 		},
 		QueueOptions: QueueOptions{
 			Name:       queueName,
@@ -26,7 +26,7 @@ func getDefaultConsumerOptions(queueName string) ConsumerOptions {
 			Exclusive:  false,
 			NoWait:     false,
 			Passive:    false,
-			Args:       Table{},
+			Args:       make(Table),
 			Declare:    true,
 		},
 		ExchangeOptions: []ExchangeOptions{},
@@ -47,7 +47,7 @@ func getDefaultExchangeOptions() ExchangeOptions {
 		Internal:   false,
 		NoWait:     false,
 		Passive:    false,
-		Args:       Table{},
+		Args:       make(Table),
 		Declare:    false,
 		Bindings:   []Binding{},
 	}
@@ -56,7 +56,7 @@ func getDefaultExchangeOptions() ExchangeOptions {
 func getDefaultBindingOptions() BindingOptions {
 	return BindingOptions{
 		NoWait:  false,
-		Args:    Table{},
+		Args:    make(Table),
 		Declare: true,
 	}
 }
@@ -132,6 +132,8 @@ func WithConsumerOptionsQueueExpires(expire time.Duration) func(*ConsumerOptions
 		if options.QueueOptions.Args == nil {
 			options.QueueOptions.Args = make(Table)
 		}
+		// 过期队列必需持久化
+		options.QueueOptions.Durable = true
 		options.QueueOptions.Args["x-expires"] = expire.Milliseconds() // 队列过期时间, 单位毫秒
 	}
 }
@@ -349,7 +351,7 @@ func WithConsumerOptionsForceShutdown(options *ConsumerOptions) {
 // for higher reliability
 func WithConsumerOptionsQueueQuorum(options *ConsumerOptions) {
 	if options.QueueOptions.Args == nil {
-		options.QueueOptions.Args = Table{}
+		options.QueueOptions.Args = make(Table)
 	}
 
 	options.QueueOptions.Args["x-queue-type"] = "quorum"
@@ -362,7 +364,7 @@ func WithConsumerOptionsQueueQuorum(options *ConsumerOptions) {
 func WithConsumerOptionsQueueMessageExpiration(ttl time.Duration) func(*ConsumerOptions) {
 	return func(options *ConsumerOptions) {
 		if options.QueueOptions.Args == nil {
-			options.QueueOptions.Args = Table{}
+			options.QueueOptions.Args = make(Table)
 		}
 		options.QueueOptions.Args["x-message-ttl"] = ttl.Milliseconds()
 	}

@@ -5,26 +5,26 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/busyster996/dagflow/internal/server/types"
+	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/storage/models"
 )
 
-func ConvertState(state models.State) types.Code {
+func ConvertState(state models.State) base.Code {
 	switch state {
 	case models.StateStopped:
-		return types.CodeSuccess
+		return base.CodeSuccess
 	case models.StateRunning:
-		return types.CodeRunning
+		return base.CodeRunning
 	case models.StatePending:
-		return types.CodePending
+		return base.CodePending
 	case models.StatePaused:
-		return types.CodePaused
+		return base.CodePaused
 	case models.StateFailed:
-		return types.CodeFailed
+		return base.CodeFailed
 	case models.StateSkipped:
-		return types.CodeSkipped
+		return base.CodeSkipped
 	default:
-		return types.CodeNoData
+		return base.CodeNoData
 	}
 }
 

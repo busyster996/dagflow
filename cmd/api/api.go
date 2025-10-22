@@ -14,7 +14,7 @@ import (
 
 	"github.com/busyster996/dagflow/internal/config"
 	"github.com/busyster996/dagflow/internal/server"
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -49,8 +49,8 @@ func New() *cobra.Command {
 				return err
 			}
 			svc, err := service.New(&apiService{cmd.Context()}, &service.Config{
-				Name:        utils.ServiceName,
-				DisplayName: utils.ServiceName,
+				Name:        utility.ServiceName,
+				DisplayName: utility.ServiceName,
 				Description: "Operating System Remote Executor Api",
 				Executable:  name,
 				Arguments:   os.Args[1:],
@@ -77,13 +77,7 @@ type apiService struct {
 }
 
 func (a *apiService) Start(s service.Service) error {
-	return server.Start(
-		a.ctx,
-		config.GetGormDB(),
-		viper.GetString("addr"),
-		viper.GetString("relative_path"),
-		viper.GetString("work_space"),
-	)
+	return server.Start(a.ctx)
 }
 
 func (a *apiService) Stop(s service.Service) error {

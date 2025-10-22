@@ -25,13 +25,13 @@ import (
 // @Param		pipeline path string true "流水线名称"
 // @Param		page query int false "页码" default(1)
 // @Param		size query int false "分页大小" default(100)
-// @Success		200 {object} types.SBase[types.SPipelineBuildListRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SPipelineBuildListRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/pipeline/{pipeline}/build [get]
 func List(c *gin.Context) {
 	pipelineName := c.Param("pipeline")
 	if pipelineName == "" {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("pipeline does not exist")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("pipeline does not exist")))
 		return
 	}
 
@@ -49,7 +49,7 @@ func List(c *gin.Context) {
 		ws, err = base.Upgrade(c.Writer, c.Request)
 		if err != nil {
 			logx.Errorln(err)
-			base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 			return
 		}
 	}

@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/busyster996/dagflow/internal/pubsub/common"
 	"github.com/busyster996/dagflow/internal/pubsub/queue"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -45,20 +45,20 @@ func PublishTaskDelayed(node string, data string, delay time.Duration) error {
 	return broker.PublishTaskDelayed(node, data, delay)
 }
 
-func SubscribeTask(ctx context.Context, node string, handler common.HandleFn) error {
+func SubscribeTask(ctx context.Context, node string, handler utility.QueueHandleFn) error {
 	return broker.SubscribeTask(ctx, node, handler)
 }
 
 func PublishEvent(data string) error {
 	return broker.PublishEvent(data)
 }
-func SubscribeEvent(ctx context.Context, handler common.HandleFn) error {
+func SubscribeEvent(ctx context.Context, handler utility.QueueHandleFn) error {
 	return broker.SubscribeEvent(ctx, handler)
 }
 func PublishManager(node string, data string) error {
 	return broker.PublishManager(node, data)
 }
-func SubscribeManager(ctx context.Context, node string, handler common.HandleFn) error {
+func SubscribeManager(ctx context.Context, node string, handler utility.QueueHandleFn) error {
 	return broker.SubscribeManager(ctx, node, handler)
 }
 

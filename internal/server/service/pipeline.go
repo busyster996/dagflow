@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/segmentio/ksuid"
 
+	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/types"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
@@ -127,11 +128,11 @@ func (p *SPipelineService) BuildList(req *types.SPageReq) *types.SPipelineBuildL
 	return list
 }
 
-func (p *SPipelineService) BuildDetail(name string) (types.Code, *types.SPipelineBuildRes, error) {
+func (p *SPipelineService) BuildDetail(name string) (base.Code, *types.SPipelineBuildRes, error) {
 	build, err := storage.Pipeline(p.name).Build().Get(name)
 	if err != nil {
 		logx.Errorln("get pipeline build", p.name, err)
-		return types.CodeFailed, nil, errors.New("pipeline not found")
+		return base.CodeFailed, nil, errors.New("pipeline not found")
 	}
 	return ConvertState(*build.State), &types.SPipelineBuildRes{
 		PipelineName: build.PipelineName,

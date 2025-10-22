@@ -16,21 +16,21 @@ import (
 // @Accept		application/json
 // @Produce		application/json
 // @Param		content body types.SPipelineCreateReq true "流水线内容"
-// @Success		200 {object} types.SBase[any]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[any]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/pipeline [post]
 func Post(c *gin.Context) {
 	var req = new(types.SPipelineCreateReq)
 	if err := c.ShouldBind(req); err != nil {
 		logx.Errorln(err)
-		base.Send(c, base.WithCode[any](types.CodeFailed).WithError(err))
+		base.Send(c, base.WithCode[any](base.CodeFailed).WithError(err))
 		return
 	}
 
 	if err := service.Pipeline(req.Name).Create(req); err != nil {
-		base.Send(c, base.WithCode[any](types.CodeFailed).WithError(err))
+		base.Send(c, base.WithCode[any](base.CodeFailed).WithError(err))
 		return
 	}
 
-	base.Send(c, base.WithCode[any](types.CodeSuccess))
+	base.Send(c, base.WithCode[any](base.CodeSuccess))
 }

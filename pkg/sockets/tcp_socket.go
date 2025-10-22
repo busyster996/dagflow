@@ -2,6 +2,7 @@
 package sockets
 
 import (
+	"context"
 	"crypto/tls"
 	"net"
 )
@@ -9,8 +10,9 @@ import (
 // NewTCPSocket creates a TCP socket listener with the specified address and
 // the specified tls configuration. If TLSConfig is set, will encapsulate the
 // TCP listener inside a TLS one.
-func NewTCPSocket(addr string, tlsConfig *tls.Config) (net.Listener, error) {
-	l, err := net.Listen("tcp", addr)
+func NewTCPSocket(ctx context.Context, addr string, tlsConfig *tls.Config) (net.Listener, error) {
+	lc := &net.ListenConfig{}
+	l, err := lc.Listen(ctx, "tcp", addr)
 	if err != nil {
 		return nil, err
 	}

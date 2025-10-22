@@ -22,13 +22,13 @@ import (
 // @Accept		application/json
 // @Produce		application/json
 // @Param		task path string true "任务名称"
-// @Success		200 {object} types.SBase[types.SStepsRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SStepsRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/task/{task}/step [get]
 func List(c *gin.Context) {
 	taskName := c.Param("task")
 	if taskName == "" {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("task does not exist")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("task does not exist")))
 		return
 	}
 
@@ -38,7 +38,7 @@ func List(c *gin.Context) {
 		ws, err = base.Upgrade(c.Writer, c.Request)
 		if err != nil {
 			logx.Errorln(err)
-			base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 			return
 		}
 	}
@@ -62,7 +62,7 @@ func List(c *gin.Context) {
 			}
 		}
 	}()
-	var lastCode types.Code
+	var lastCode base.Code
 	var lastError error
 	var lastList []*types.SStepRes
 	for {
@@ -72,7 +72,7 @@ func List(c *gin.Context) {
 		default:
 		}
 		currentCode, currentList, currentErr := service.Task(taskName).Steps()
-		if currentErr != nil && currentCode == types.CodeNoData {
+		if currentErr != nil && currentCode == base.CodeNoData {
 			_ = ws.WriteJSON(base.WithCode[any](currentCode).WithError(currentErr))
 			return
 		}
@@ -97,7 +97,7 @@ func List(c *gin.Context) {
 		}
 		time.Sleep(500 * time.Millisecond)
 		switch currentCode {
-		case types.CodeSuccess, types.CodeFailed, types.CodeSkipped:
+		case base.CodeSuccess, base.CodeFailed, base.CodeSkipped:
 			return
 		default:
 

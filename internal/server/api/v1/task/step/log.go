@@ -21,14 +21,14 @@ import (
 // @Produce		application/json
 // @Param		task path string true "任务名称"
 // @Param		step path string true "步骤名称"
-// @Success		200 {object} types.SBase[types.SStepLogsRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SStepLogsRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/task/{task}/step/{step}/log [get]
 func Log(c *gin.Context) {
 	taskName := c.Param("task")
 	stepName := c.Param("step")
 	if taskName == "" || stepName == "" {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("task or step does not exist")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("task or step does not exist")))
 		return
 	}
 
@@ -37,7 +37,7 @@ func Log(c *gin.Context) {
 		var err error
 		ws, err = base.Upgrade(c.Writer, c.Request)
 		if err != nil {
-			base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 			return
 		}
 	}
@@ -54,11 +54,11 @@ func Log(c *gin.Context) {
 			}
 		}()
 		defer base.CloseWs(ws, "Server is shutting down")
-		err := service.Step(taskName, stepName).LogStream(ctx, func(code types.Code, data types.SStepLogsRes, err error) error {
+		err := service.Step(taskName, stepName).LogStream(ctx, func(code base.Code, data types.SStepLogsRes, err error) error {
 			return ws.WriteJSON(base.WithData(data).WithCode(code).WithError(err))
 		})
 		if err != nil {
-			_ = ws.WriteJSON(base.WithCode[any](types.CodeFailed).WithError(err))
+			_ = ws.WriteJSON(base.WithCode[any](base.CodeFailed).WithError(err))
 		}
 		time.Sleep(500 * time.Millisecond)
 		return

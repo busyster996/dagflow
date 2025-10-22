@@ -9,12 +9,12 @@ import (
 	"github.com/expr-lang/expr"
 	"github.com/pkg/errors"
 
+	"github.com/busyster996/dagflow/internal/common"
+	"github.com/busyster996/dagflow/internal/runner"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
-	"github.com/busyster996/dagflow/internal/utils"
-	"github.com/busyster996/dagflow/internal/worker/common"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/internal/worker/event"
-	"github.com/busyster996/dagflow/internal/worker/runner"
 	"github.com/busyster996/dagflow/pkg/dagcuter"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
@@ -61,7 +61,7 @@ func (s *sStep) RetryPolicy() *dagcuter.RetryPolicy {
 
 func (s *sStep) PreExecution(ctx context.Context, input map[string]any) error {
 	logx.Infoln(s.taskName, s.stepName, s.workspace, "PreExecution")
-	event.SendEventf("%s %s PreExecution", s.taskName, s.stepName)
+	event.Sendf("%s %s PreExecution", s.taskName, s.stepName)
 	return nil
 }
 
@@ -70,7 +70,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		return nil, err
 	}
 	logx.Infoln(s.taskName, s.stepName, s.workspace, "Execute")
-	event.SendEventf("%s %s Execute", s.taskName, s.stepName)
+	event.Sendf("%s %s Execute", s.taskName, s.stepName)
 	var err error
 	if err = s.stg.Update(&models.SStepUpdate{
 		State:    models.Pointer(models.StateRunning),
@@ -79,7 +79,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		STime:    models.Pointer(time.Now()),
 	}); err != nil {
 		logx.Errorln(s.taskName, s.stepName, err)
-		event.SendEventf("%s %s error %v", s.taskName, s.stepName, err)
+		event.Sendf("%s %s error %v", s.taskName, s.stepName, err)
 		return nil, err
 	}
 
@@ -89,7 +89,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		if _err := recover(); _err != nil {
 			stack := string(debug.Stack())
 			logx.Errorln(stack, _err)
-			res.Code = models.Pointer(common.CodeSystemErr)
+			res.Code = models.Pointer(common.ExecCodeSystemErr)
 			res.Message = fmt.Sprint(_err)
 		}
 		res.ETime = models.Pointer(time.Now())
@@ -97,12 +97,12 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		if _err := s.stg.Update(res); _err != nil {
 			logx.Errorln(_err)
 		}
-		event.SendEventf("%s %s %v", s.taskName, s.stepName, res.Message)
+		event.Sendf("%s %s %v", s.taskName, s.stepName, res.Message)
 	}()
 
 	// 日志写入
-	s.stg.Log().Write(common.ConsoleStart)
-	defer s.stg.Log().Write(common.ConsoleDone)
+	s.stg.Log().Write(common.ExecConsoleStart)
+	defer s.stg.Log().Write(common.ExecConsoleDone)
 
 	if s.kind == common.KindStrategy {
 		// 评估规则, 使用expr
@@ -113,14 +113,14 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 			// 写入步骤日志
 			s.stg.Log().Write(err.Error())
 			res.State = models.Pointer(models.StateFailed)
-			res.Code = models.Pointer(common.CodeSystemErr)
+			res.Code = models.Pointer(common.ExecCodeSystemErr)
 			res.Message = err.Error()
 			return nil, err
 		}
 		switch action {
 		case common.ActionSkip:
 			res.State = models.Pointer(models.StateSkipped)
-			res.Code = models.Pointer(common.CodeSkipped)
+			res.Code = models.Pointer(common.ExecCodeSkipped)
 			res.Message = "skipped due to rule"
 			return nil, nil
 		default:
@@ -137,7 +137,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 		logx.Errorln(s.taskName, s.stepName, err)
 		res.State = models.Pointer(models.StateFailed)
 		res.Message = err.Error()
-		res.Code = models.Pointer(common.CodeSystemErr)
+		res.Code = models.Pointer(common.ExecCodeSystemErr)
 		return nil, err
 	}
 
@@ -148,8 +148,8 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 	}()
 
 	res.Message = "execution succeed"
-	var code int64
-	_ctx, cancel := utils.MergerContext(ctx, s.lcCtx)
+	var code common.ExecCode
+	_ctx, cancel := utility.MergerContext(ctx, s.lcCtx)
 	defer cancel()
 	code, err = _runner.Run(_ctx)
 	res.Code = models.Pointer(code)
@@ -169,7 +169,7 @@ func (s *sStep) Execute(ctx context.Context, input map[string]any) (map[string]a
 
 func (s *sStep) PostExecution(ctx context.Context, output map[string]any) error {
 	logx.Infoln(s.taskName, s.stepName, s.workspace, "PostExecution")
-	event.SendEventf("%s %s PostExecution", s.taskName, s.stepName)
+	event.Sendf("%s %s PostExecution", s.taskName, s.stepName)
 	stepManager.Delete(s.Name())
 	return nil
 }
@@ -182,7 +182,7 @@ func (s *sStep) Stop() {
 	}()
 	if s.lcCancel != nil {
 		logx.Infoln(s.taskName, s.stepName, s.workspace, "Stop")
-		event.SendEventf("%s %s Stop", s.taskName, s.stepName)
+		event.Sendf("%s %s Stop", s.taskName, s.stepName)
 		s.lcCancel()
 	}
 	stepManager.Delete(s.Name())

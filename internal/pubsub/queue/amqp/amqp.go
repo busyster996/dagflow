@@ -10,9 +10,8 @@ import (
 	"github.com/segmentio/ksuid"
 	"go.uber.org/zap"
 
-	"github.com/busyster996/dagflow/internal/pubsub/common"
 	"github.com/busyster996/dagflow/internal/pubsub/queue"
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pkg/rabbitmq"
 )
@@ -29,11 +28,11 @@ type sAmqp struct {
 }
 
 func (a *sAmqp) directExchangeName() string {
-	return utils.ServiceName
+	return utility.ServiceName
 }
 
 func (a *sAmqp) topicExchangeName() string {
-	return utils.ServiceName + ".topic"
+	return utility.ServiceName + ".topic"
 }
 
 func (a *sAmqp) PublishTask(node string, data string) error {
@@ -71,21 +70,21 @@ func (a *sAmqp) PublishTaskDelayed(node string, data string, delay time.Duration
 	return a.publish(amqp091.ExchangeDirect, delayedQueue, data, fmt.Sprintf("%.f", delay.Seconds()))
 }
 
-func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler common.HandleFn) error {
+func (a *sAmqp) SubscribeTask(ctx context.Context, node string, handler utility.QueueHandleFn) error {
 	qname := fmt.Sprintf("%s.%s", queue.TaskRoutingKey(), node)
-	d, _ := a.directs.LoadOrStore(qname, common.NewMemDirect(qname))
+	d, _ := a.directs.LoadOrStore(qname, utility.NewMemDirectQueue(qname))
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if _, ok := a.consumerMap[qname]; !ok {
 		var err error
 		a.consumerMap[qname], err = a.newConsumer(amqp091.ExchangeDirect, qname, qname, false, func(data string) {
-			d.(*common.SMemDirect).Publish(data)
+			d.(utility.IQueue).Publish(data)
 		})
 		if err != nil {
 			return err
 		}
 	}
-	d.(*common.SMemDirect).Subscribe(ctx, handler)
+	d.(utility.IQueue).Subscribe(ctx, handler)
 	return nil
 }
 
@@ -94,22 +93,22 @@ func (a *sAmqp) PublishEvent(data string) error {
 	return a.publish(amqp091.ExchangeTopic, rkey, data, "")
 }
 
-func (a *sAmqp) SubscribeEvent(ctx context.Context, handler common.HandleFn) error {
+func (a *sAmqp) SubscribeEvent(ctx context.Context, handler utility.QueueHandleFn) error {
 	rkey := fmt.Sprintf("%s.*", queue.EventRoutingKey())
-	t, _ := a.topics.LoadOrStore(rkey, common.NewMemTopic(rkey))
+	t, _ := a.topics.LoadOrStore(rkey, utility.NewMemTopicQueue(rkey))
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if _, ok := a.consumerMap[rkey]; !ok {
 		qname := fmt.Sprintf("%s.%s", queue.EventRoutingKey(), ksuid.New().String())
 		var err error
 		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, rkey, qname, true, func(data string) {
-			t.(*common.SMemTopic).Publish(data)
+			t.(utility.IQueue).Publish(data)
 		})
 		if err != nil {
 			return err
 		}
 	}
-	t.(*common.SMemTopic).Subscribe(ctx, handler)
+	t.(utility.IQueue).Subscribe(ctx, handler)
 	return nil
 }
 
@@ -118,22 +117,22 @@ func (a *sAmqp) PublishManager(node string, data string) error {
 	return a.publish(amqp091.ExchangeTopic, routingKey, data, "")
 }
 
-func (a *sAmqp) SubscribeManager(ctx context.Context, node string, handler common.HandleFn) error {
+func (a *sAmqp) SubscribeManager(ctx context.Context, node string, handler utility.QueueHandleFn) error {
 	rkey := fmt.Sprintf("%s.%s", queue.ManagerRoutingKey(), node)
-	t, _ := a.topics.LoadOrStore(rkey, common.NewMemTopic(rkey))
+	t, _ := a.topics.LoadOrStore(rkey, utility.NewMemTopicQueue(rkey))
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	if _, ok := a.consumerMap[rkey]; !ok {
 		qname := fmt.Sprintf("%s.%s", queue.ManagerRoutingKey(), node)
 		var err error
 		a.consumerMap[rkey], err = a.newConsumer(amqp091.ExchangeTopic, rkey, qname, false, func(data string) {
-			t.(*common.SMemTopic).Publish(data)
+			t.(utility.IQueue).Publish(data)
 		})
 		if err != nil {
 			return err
 		}
 	}
-	t.(*common.SMemTopic).Subscribe(ctx, handler)
+	t.(utility.IQueue).Subscribe(ctx, handler)
 	return nil
 }
 
@@ -152,18 +151,18 @@ func (a *sAmqp) Shutdown(ctx context.Context) {
 	var wg sync.WaitGroup
 	a.directs.Range(func(_, value any) bool {
 		wg.Add(1)
-		go func(t *common.SMemDirect) {
+		go func(t utility.IQueue) {
 			defer wg.Done()
 			t.Close()
-		}(value.(*common.SMemDirect))
+		}(value.(utility.IQueue))
 		return true
 	})
 	a.topics.Range(func(_, value any) bool {
 		wg.Add(1)
-		go func(d *common.SMemTopic) {
+		go func(d utility.IQueue) {
 			defer wg.Done()
 			d.Close()
-		}(value.(*common.SMemTopic))
+		}(value.(utility.IQueue))
 		return true
 	})
 
@@ -181,7 +180,7 @@ func (a *sAmqp) Shutdown(ctx context.Context) {
 	}
 }
 
-func (a *sAmqp) subscribe(ctx context.Context, consumer *rabbitmq.Consumer, handler common.HandleFn) {
+func (a *sAmqp) subscribe(ctx context.Context, consumer *rabbitmq.Consumer, handler utility.QueueHandleFn) {
 	ctx, cancel := context.WithCancel(ctx)
 	go func() {
 		defer cancel()
@@ -255,7 +254,7 @@ func (a *sAmqp) newPublisher(kind, ename string) (*rabbitmq.Publisher, error) {
 	return publisher, nil
 }
 
-func (a *sAmqp) newConsumer(kind, rkey, qname string, autoDel bool, handle common.HandleFn) (*rabbitmq.Consumer, error) {
+func (a *sAmqp) newConsumer(kind, rkey, qname string, autoDel bool, handle utility.QueueHandleFn) (*rabbitmq.Consumer, error) {
 	var ename = a.directExchangeName()
 	if kind == amqp091.ExchangeTopic {
 		ename = a.topicExchangeName()

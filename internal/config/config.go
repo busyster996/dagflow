@@ -24,8 +24,8 @@ import (
 	"github.com/busyster996/dagflow/internal/pubsub"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
-	"github.com/busyster996/dagflow/internal/utils"
-	"github.com/busyster996/dagflow/internal/utils/sid"
+	"github.com/busyster996/dagflow/internal/utility"
+	"github.com/busyster996/dagflow/internal/utility/sid"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -42,7 +42,7 @@ func Init() error {
 	viper.Set("relative_path", strings.TrimSuffix(viper.GetString("relative_path"), "/"))
 	var logfile string
 	if viper.GetString("log_output") == "file" {
-		logfile = filepath.Join(viper.GetString("log_dir"), utils.ServiceName+".log")
+		logfile = filepath.Join(viper.GetString("log_dir"), utility.ServiceName+".log")
 	}
 
 	logx.SetupConsoleLogger(logfile, zap.AddStacktrace(zapcore.FatalLevel))
@@ -63,7 +63,7 @@ func Init() error {
 		if name == "log" && viper.GetString("log_output") != "file" {
 			continue
 		}
-		if err = utils.EnsureDirExist(dir); err != nil {
+		if err = utility.EnsureDirExist(dir); err != nil {
 			return fmt.Errorf("failed to ensure directory %s: %v", dir, err)
 		}
 		logx.Infof("%s dir: %s", name, dir)
@@ -83,7 +83,7 @@ func Init() error {
 	}
 
 	if viper.GetBool("enable_self_update") {
-		utils.StartSelfUpdate(viper.GetString("self_url"), func() bool {
+		utility.StartSelfUpdate(viper.GetString("self_url"), func() bool {
 			if (storage.TaskCount(models.StateRunning) + storage.TaskCount(models.StatePending)) != 0 {
 				// 还有任务执行中或者等待执行不升级
 				logx.Warnln("the task has not been completed")
@@ -121,10 +121,10 @@ func initStorage() (err error) {
 		dialector = sqlserver.Open(viper.GetString("db_url"))
 	case storage.TypeSqlite:
 		dir := filepath.Join(viper.GetString("root_dir"), "data")
-		if err = utils.EnsureDirExist(dir); err != nil {
+		if err = utility.EnsureDirExist(dir); err != nil {
 			return fmt.Errorf("failed to ensure directory %s: %v", dir, err)
 		}
-		file := filepath.Join(dir, fmt.Sprintf("%s.db3", utils.ServiceName))
+		file := filepath.Join(dir, fmt.Sprintf("%s.db3", utility.ServiceName))
 		logx.Infof("%s file: %s", "data", file)
 		viper.Set("db_url", fmt.Sprintf("%s://%s", storage.TypeSqlite, file))
 		// test.db
@@ -165,7 +165,7 @@ func initStorage() (err error) {
 	_ = db.Use(&caches.Caches{Conf: &caches.Config{
 		Easer: true,
 	}})
-	err = sid.Set(viper.GetInt64("kind_id"), viper.GetInt64("node_id"))
+	err = sid.Set(viper.GetUint64("kind_id"), viper.GetUint64("node_id"))
 	if err != nil {
 		logx.Errorln(err)
 		return err

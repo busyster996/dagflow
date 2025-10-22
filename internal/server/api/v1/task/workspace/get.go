@@ -14,7 +14,7 @@ import (
 
 	"github.com/busyster996/dagflow/internal/server/router/base"
 	"github.com/busyster996/dagflow/internal/server/types"
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -26,44 +26,44 @@ import (
 // @Produce		application/json
 // @Param		task path string true "任务名称"
 // @Param		path query string false "路径"
-// @Success		200 {object} types.SBase[types.SFileListRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SFileListRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/task/{task}/workspace [get]
 func Get(c *gin.Context) {
 	taskName := c.Param("task")
 	if taskName == "" {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("task does not exist")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("task does not exist")))
 		return
 	}
 	prefix := filepath.Join(viper.GetString("workspace_dir"), taskName)
-	if !utils.FileOrPathExist(prefix) {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("task does not exist")))
+	if !utility.FileOrPathExist(prefix) {
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("task does not exist")))
 		return
 	}
-	path := filepath.Join(prefix, utils.PathEscape(c.Query("path")))
+	path := filepath.Join(prefix, utility.PathEscape(c.Query("path")))
 	file, err := os.Open(path)
 	if err != nil {
 		logx.Errorln(err)
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 		return
 	}
 	fileInfo, err := file.Stat()
 	if err != nil {
 		logx.Errorln(err)
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 		return
 	}
 	if fileInfo.Mode()&os.ModeSymlink == os.ModeSymlink {
 		finalPath, err := filepath.EvalSymlinks(path)
 		if err != nil {
 			logx.Errorln(err)
-			base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 			return
 		}
 		fileInfo, err = os.Lstat(finalPath)
 		if err != nil {
 			logx.Errorln(err)
-			base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 			return
 		}
 	}
@@ -81,7 +81,7 @@ func Get(c *gin.Context) {
 	entries, err := os.ReadDir(path)
 	if err != nil {
 		logx.Errorln(err)
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 		return
 	}
 

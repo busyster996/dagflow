@@ -8,6 +8,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 	"encoding/csv"
+	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -19,7 +20,6 @@ import (
 
 	"dario.cat/mergo"
 	"github.com/dustin/go-humanize"
-	json "github.com/json-iterator/go"
 	"github.com/nikolalohinski/gonja/v2/exec"
 	"github.com/pelletier/go-toml/v2"
 	"github.com/pkg/errors"
@@ -834,7 +834,7 @@ func filterMerge(_ *exec.Evaluator, in *exec.Value, params *exec.VarArgs) *exec.
 	inputSimpleType := in.ToGoSimpleType(false)
 	withSimpleType := withValue.ToGoSimpleType(false)
 
-	modifiers := []func(*mergo.Config){}
+	var modifiers []func(*mergo.Config)
 
 	if override {
 		modifiers = append(modifiers, mergo.WithOverride)

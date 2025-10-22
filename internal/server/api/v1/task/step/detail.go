@@ -21,24 +21,24 @@ import (
 // @Produce		application/json
 // @Param		task path string true "任务名称"
 // @Param		step path string true "步骤名称"
-// @Success		200 {object} types.SBase[types.SStepRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SStepRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/task/{task}/step/{step} [get]
 func Detail(c *gin.Context) {
 	var taskName = c.Param("task")
 	if taskName == "" {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("task does not exist")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("task does not exist")))
 		return
 	}
 	var stepName = c.Param("step")
 	if stepName == "" {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("step does not exist")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("step does not exist")))
 		return
 	}
 	if c.GetHeader("Accept") != base.EventStreamMimeType {
 		code, step, err := service.Step(taskName, stepName).Detail()
 		if err != nil {
-			base.Send(c, base.WithCode[any](types.CodeNoData).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeNoData).WithError(err))
 			return
 		}
 
@@ -48,7 +48,7 @@ func Detail(c *gin.Context) {
 	ticker := time.NewTicker(30 * time.Second) // 每30秒发送心跳
 	defer ticker.Stop()
 
-	var lastCode types.Code
+	var lastCode base.Code
 	var lastError error
 	var last *types.SStepRes
 	c.Stream(func(w io.Writer) bool {

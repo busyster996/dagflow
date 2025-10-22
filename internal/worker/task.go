@@ -8,11 +8,12 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 
+	"github.com/busyster996/dagflow/internal/common"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
-	"github.com/busyster996/dagflow/internal/utils"
-	"github.com/busyster996/dagflow/internal/worker/common"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/internal/worker/event"
 	"github.com/busyster996/dagflow/pkg/dagcuter"
 	"github.com/busyster996/dagflow/pkg/logx"
@@ -36,13 +37,13 @@ type sTask struct {
 	state     int32 // 0: 正常, 1: 挂起
 }
 
-func newTask(taskName string, workerSpace, scriptDir string) (*sTask, error) {
+func newTask(taskName string) (*sTask, error) {
 	t := &sTask{
 		stg:       storage.Task(taskName),
 		taskName:  taskName,
 		dagTasks:  make(map[string]dagcuter.Task),
-		workspace: filepath.Join(workerSpace, taskName),
-		scriptDir: filepath.Join(scriptDir, taskName),
+		workspace: filepath.Join(viper.GetString("workspace_dir"), taskName),
+		scriptDir: filepath.Join(viper.GetString("script_dir"), taskName),
 	}
 	t.lcCtx, t.lcCancel = context.WithCancel(context.WithValue(context.Background(), "ctx", "task"))
 	var err error
@@ -167,7 +168,7 @@ func (t *sTask) Execute() (err error) {
 	var ctx context.Context
 	var cancel context.CancelFunc
 	if timeout > 0 {
-		ctx, cancel = context.WithTimeoutCause(t.lcCtx, timeout+time.Minute, common.ErrTimeOut)
+		ctx, cancel = context.WithTimeoutCause(t.lcCtx, timeout+time.Minute, common.ExecErrTimeOut)
 	} else {
 		ctx, cancel = context.WithCancel(t.lcCtx)
 	}
@@ -227,7 +228,7 @@ func (t *sTask) Stop() {
 	}()
 	if t.lcCancel != nil {
 		logx.Infoln(t.taskName, "Stop")
-		event.SendEventf("%s Stop", t.taskName)
+		event.Sendf("%s Stop", t.taskName)
 		t.lcCancel()
 	}
 	// 删除manager
@@ -239,11 +240,11 @@ func (t *sTask) Stop() {
 }
 
 func (t *sTask) initDir() error {
-	if err := utils.EnsureDirExist(t.workspace); err != nil {
+	if err := utility.EnsureDirExist(t.workspace); err != nil {
 		logx.Errorln(t.taskName, t.workspace, t.scriptDir, err)
 		return err
 	}
-	if err := utils.EnsureDirExist(t.scriptDir); err != nil {
+	if err := utility.EnsureDirExist(t.scriptDir); err != nil {
 		logx.Errorln(t.taskName, err)
 		return err
 	}

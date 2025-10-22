@@ -4,6 +4,7 @@ package sockets
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"time"
@@ -27,4 +28,8 @@ func configureNpipeTransport(tr *http.Transport, proto, addr string) error {
 // DialPipe connects to a Windows named pipe.
 func DialPipe(addr string, timeout time.Duration) (net.Conn, error) {
 	return winio.DialPipe(addr, &timeout)
+}
+
+func DefaultPipePath(name string) string {
+	return fmt.Sprintf("npipe:////./pipe/%s", name)
 }

@@ -3,7 +3,7 @@ package worker
 import (
 	"strings"
 
-	"github.com/busyster996/dagflow/internal/worker/runner"
+	"github.com/busyster996/dagflow/internal/runner"
 )
 
 func (s *sStep) newExecutorRunner() (runner.IRunner, error) {

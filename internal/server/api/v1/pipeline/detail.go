@@ -21,23 +21,23 @@ import (
 // @Accept		application/json
 // @Produce		application/json
 // @Param		pipeline path string true "流水线名称"
-// @Success		200 {object} types.SBase[types.SPipelineRes]
-// @Failure		500 {object} types.SBase[any]
+// @Success		200 {object} base.IResponse[types.SPipelineRes]
+// @Failure		500 {object} base.IResponse[any]
 // @Router		/api/v1/pipeline/{pipeline} [get]
 func Detail(c *gin.Context) {
 	pipelineName := c.Param("pipeline")
 	if pipelineName == "" {
-		base.Send(c, base.WithCode[any](types.CodeNoData).WithError(errors.New("pipeline does not exist")))
+		base.Send(c, base.WithCode[any](base.CodeNoData).WithError(errors.New("pipeline does not exist")))
 		return
 	}
 	if c.GetHeader("Accept") != base.EventStreamMimeType {
 		res, err := service.Pipeline(pipelineName).Detail()
 		if err != nil {
 			logx.Errorln(err)
-			base.Send(c, base.WithCode[any](types.CodeFailed).WithError(err))
+			base.Send(c, base.WithCode[any](base.CodeFailed).WithError(err))
 			return
 		}
-		base.Send(c, base.WithData(res).WithCode(types.CodeSuccess))
+		base.Send(c, base.WithData(res).WithCode(base.CodeSuccess))
 		return
 	}
 	ticker := time.NewTicker(30 * time.Second) // 每30秒发送心跳

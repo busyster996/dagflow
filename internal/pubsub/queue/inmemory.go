@@ -9,8 +9,7 @@ import (
 
 	"github.com/segmentio/ksuid"
 
-	"github.com/busyster996/dagflow/internal/pubsub/common"
-	"github.com/busyster996/dagflow/internal/utils"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pkg/wildcard"
 )
@@ -32,13 +31,13 @@ type sMemoryBroker struct {
 
 func (m *sMemoryBroker) PublishTask(node string, data string) error {
 	routingKey := fmt.Sprintf("%s_%s", TaskRoutingKey(), node)
-	d, _ := m.directs.LoadOrStore(routingKey, common.NewMemDirect(routingKey))
-	d.(*common.SMemDirect).Publish(data)
+	d, _ := m.directs.LoadOrStore(routingKey, utility.NewMemDirectQueue(routingKey))
+	d.(utility.IQueue).Publish(data)
 	return nil
 }
 
 func (m *sMemoryBroker) PublishTaskDelayed(node string, data string, delay time.Duration) error {
-	key := utils.MD5(fmt.Sprintf("%s_%s_%s", TaskRoutingKey(), node, data))
+	key := utility.MD5(fmt.Sprintf("%s_%s_%s", TaskRoutingKey(), node, data))
 	t := time.AfterFunc(delay, func() {
 		err := m.PublishTask(node, data)
 		if err != nil {
@@ -61,10 +60,10 @@ func (m *sMemoryBroker) PublishTaskDelayed(node string, data string, delay time.
 	return nil
 }
 
-func (m *sMemoryBroker) SubscribeTask(ctx context.Context, node string, handler common.HandleFn) error {
+func (m *sMemoryBroker) SubscribeTask(ctx context.Context, node string, handler utility.QueueHandleFn) error {
 	routingKey := fmt.Sprintf("%s_%s", TaskRoutingKey(), node)
-	d, _ := m.directs.LoadOrStore(routingKey, common.NewMemDirect(routingKey))
-	d.(*common.SMemDirect).Subscribe(ctx, handler)
+	d, _ := m.directs.LoadOrStore(routingKey, utility.NewMemDirectQueue(routingKey))
+	d.(utility.IQueue).Subscribe(ctx, handler)
 	return nil
 }
 
@@ -72,34 +71,34 @@ func (m *sMemoryBroker) PublishEvent(data string) error {
 	routingKey := fmt.Sprintf("%s.*", EventRoutingKey())
 	m.topics.Range(func(key, value any) bool {
 		if wildcard.Match(routingKey, key.(string)) {
-			value.(*common.SMemTopic).Publish(data)
+			value.(utility.IQueue).Publish(data)
 		}
 		return true
 	})
 	return nil
 }
 
-func (m *sMemoryBroker) SubscribeEvent(ctx context.Context, handler common.HandleFn) error {
+func (m *sMemoryBroker) SubscribeEvent(ctx context.Context, handler utility.QueueHandleFn) error {
 	routingKey := fmt.Sprintf("%s.%s", EventRoutingKey(), ksuid.New().String())
-	t, _ := m.topics.LoadOrStore(routingKey, common.NewMemTopic(routingKey))
-	t.(*common.SMemTopic).Subscribe(ctx, handler)
+	t, _ := m.topics.LoadOrStore(routingKey, utility.NewMemTopicQueue(routingKey))
+	t.(utility.IQueue).Subscribe(ctx, handler)
 	return nil
 }
 
 func (m *sMemoryBroker) PublishManager(node string, data string) error {
 	m.topics.Range(func(key, value any) bool {
 		if wildcard.Match(fmt.Sprintf("%s.%s", ManagerRoutingKey(), node), key.(string)) {
-			value.(*common.SMemTopic).Publish(data)
+			value.(utility.IQueue).Publish(data)
 		}
 		return true
 	})
 	return nil
 }
 
-func (m *sMemoryBroker) SubscribeManager(ctx context.Context, node string, handler common.HandleFn) error {
+func (m *sMemoryBroker) SubscribeManager(ctx context.Context, node string, handler utility.QueueHandleFn) error {
 	qname := fmt.Sprintf("%s.%s", ManagerRoutingKey(), node)
-	t, _ := m.topics.LoadOrStore(qname, common.NewMemTopic(qname))
-	t.(*common.SMemTopic).Subscribe(ctx, handler)
+	t, _ := m.topics.LoadOrStore(qname, utility.NewMemTopicQueue(qname))
+	t.(utility.IQueue).Subscribe(ctx, handler)
 	return nil
 }
 
@@ -118,18 +117,18 @@ func (m *sMemoryBroker) Shutdown(ctx context.Context) {
 	var wg sync.WaitGroup
 	m.directs.Range(func(_, value any) bool {
 		wg.Add(1)
-		go func(d *common.SMemDirect) {
+		go func(d utility.IQueue) {
 			defer wg.Done()
 			d.Close()
-		}(value.(*common.SMemDirect))
+		}(value.(utility.IQueue))
 		return true
 	})
 	m.topics.Range(func(_, value any) bool {
 		wg.Add(1)
-		go func(t *common.SMemTopic) {
+		go func(t utility.IQueue) {
 			defer wg.Done()
 			t.Close()
-		}(value.(*common.SMemTopic))
+		}(value.(utility.IQueue))
 		return true
 	})
 

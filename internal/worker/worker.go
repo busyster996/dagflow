@@ -9,14 +9,15 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 
+	"github.com/busyster996/dagflow/internal/common"
 	"github.com/busyster996/dagflow/internal/pubsub"
+	"github.com/busyster996/dagflow/internal/runner"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/internal/storage/models"
-	"github.com/busyster996/dagflow/internal/utils"
-	"github.com/busyster996/dagflow/internal/worker/common"
+	"github.com/busyster996/dagflow/internal/utility"
 	"github.com/busyster996/dagflow/internal/worker/event"
-	"github.com/busyster996/dagflow/internal/worker/runner"
 	"github.com/busyster996/dagflow/pkg/logx"
 	"github.com/busyster996/dagflow/pkg/tunny"
 )
@@ -27,28 +28,28 @@ var (
 	stepManager = new(sync.Map)
 )
 
-func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
+func Start(ctx context.Context) error {
 	logx.Infoln("number of workers", GetSize())
-	if err := storage.FixDatabase(nodeName); err != nil {
+	if err := storage.FixDatabase(viper.GetString("node_name")); err != nil {
 		return err
 	}
 
 	// 清理当前节点的残留文件
-	for _, t := range storage.NodeTasks(nodeName) {
+	for _, t := range storage.NodeTasks(viper.GetString("node_name")) {
 		// clear old script
-		utils.ClearDir(filepath.Join(scriptDir, t.Name()))
+		utility.ClearDir(filepath.Join(viper.GetString("script_dir"), t.Name()))
 
 		// clear old workspace
-		utils.ClearDir(filepath.Join(workerSpace, t.Name()))
+		utility.ClearDir(filepath.Join(viper.GetString("workspace_dir"), t.Name()))
 	}
 
 	// 打印当前支持的runner
 	logx.Infoln("runner", runner.ListAvailable())
-	if err := pubsub.SubscribeTask(ctx, nodeName, func(data string) {
+	if err := pubsub.SubscribeTask(ctx, viper.GetString("node_name"), func(data string) {
 		if data == "" {
 			return
 		}
-		t, err := newTask(data, workerSpace, scriptDir)
+		t, err := newTask(data)
 		if err != nil {
 			logx.Errorln(err)
 			return
@@ -64,12 +65,12 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 		if data == "" {
 			return
 		}
-		t, err := newTask(data, workerSpace, scriptDir)
+		t, err := newTask(data)
 		if err != nil {
 			logx.Errorln(err)
 			return
 		}
-		if err = t.updateNode(nodeName); err != nil {
+		if err = t.updateNode(viper.GetString("node_name")); err != nil {
 			logx.Errorln(err)
 			return
 		}
@@ -81,11 +82,11 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 		return err
 	}
 
-	if err := pubsub.SubscribeManager(ctx, nodeName, func(data string) {
-		if !utils.ContainsInvisibleChar(data) {
+	if err := pubsub.SubscribeManager(ctx, viper.GetString("node_name"), func(data string) {
+		if !utility.ContainsInvisibleChar(data) {
 			return
 		}
-		slice := utils.SplitByInvisibleChar(data)
+		slice := utility.SplitByInvisibleChar(data)
 		switch len(slice) {
 		case 3:
 			taskName := slice[0]
@@ -106,7 +107,7 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 	}); err != nil {
 		return err
 	}
-	_event, id, err := event.SubscribeEvent()
+	_event, id, err := event.Subscribe()
 	if err != nil {
 		return err
 	}
@@ -114,7 +115,7 @@ func Start(ctx context.Context, nodeName, workerSpace, scriptDir string) error {
 		for {
 			select {
 			case <-ctx.Done():
-				event.UnSubscribeEvent(id)
+				event.Unsubscribe(id)
 				return
 			case e := <-_event:
 				_ = pubsub.PublishEvent(e)
@@ -193,7 +194,7 @@ func managerStep(taskName, stepName, action, duration string) error {
 	case "kill":
 		step.Stop()
 		return storage.Task(taskName).Step(stepName).Update(&models.SStepUpdate{
-			Code:     models.Pointer(common.CodeKilled),
+			Code:     models.Pointer(common.ExecCodeKilled),
 			State:    models.Pointer(models.StateFailed),
 			OldState: s.State,
 			Message:  "has been killed",

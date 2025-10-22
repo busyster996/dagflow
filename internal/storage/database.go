@@ -6,8 +6,8 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/busyster996/dagflow/internal/common"
 	"github.com/busyster996/dagflow/internal/storage/models"
-	"github.com/busyster996/dagflow/internal/worker/common"
 	"github.com/busyster996/dagflow/pkg/logx"
 )
 
@@ -65,7 +65,7 @@ func (d *sDatabase) FixDatabase(node string) (err error) {
 		Where("state = ? OR state = ?", models.StateRunning, models.StatePaused).
 		Updates(map[string]interface{}{
 			"state":   models.StateFailed,
-			"code":    common.CodeSystemErr,
+			"code":    common.ExecCodeSystemErr,
 			"message": "execution failed due to system error",
 		}).Error; err != nil {
 		tx.Rollback()

@@ -32,7 +32,7 @@ binary:
 		-v $(CURDIR):/go/src/$(PACKAGE_NAME) \
 		-w /go/src/$(PACKAGE_NAME) \
 		ghcr.io/goreleaser/goreleaser:${GOLANG_VERSION} \
-		release -p 3 --timeout 3h --clean --auto-snapshot --snapshot --skip=chocolatey,docker,homebrew,publish,scoop,validate,winget
+		release -p 6 --timeout 5h --clean --auto-snapshot --snapshot --skip=chocolatey,docker,homebrew,publish,scoop,validate,winget
 
 .PHONY: copy-binary
 copy-binary:

@@ -1,84 +1,13 @@
 package types
 
 import (
-	"encoding/json"
-	"strings"
-
 	"github.com/gorilla/websocket"
-	"go.yaml.in/yaml/v3"
-
-	"github.com/busyster996/dagflow/internal/utils"
 )
 
 const (
 	XTaskName  = "X-Task-Name"
 	XTaskState = "X-Task-STATE"
 )
-
-type SBase[T any] struct {
-	Code      Code    `json:"code" yaml:"code"`
-	Message   Message `json:"message" yaml:"message" swaggertype:"string"`
-	Timestamp int64   `json:"timestamp" yaml:"timestamp"`
-	Data      T       `json:"data" yaml:"data"`
-}
-
-type Message []string
-
-func (msg Message) String() string {
-	return strings.Join(utils.RemoveDuplicate(msg), "; ")
-}
-
-func (msg Message) MarshalJSON() ([]byte, error) {
-	return json.Marshal(msg.String())
-}
-
-func (msg Message) MarshalYAML() (interface{}, error) {
-	data, err := yaml.Marshal(msg.String())
-	if err != nil {
-		return nil, err
-	}
-	return string(data), nil
-}
-
-func (msg *Message) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err != nil {
-		return err
-	}
-	*msg = strings.Split(s, "; ")
-	return nil
-}
-
-func (msg *Message) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	var s string
-	if err := unmarshal(&s); err != nil {
-		return err
-	}
-	*msg = strings.Split(s, "; ")
-	return nil
-}
-
-type Code int
-
-const (
-	CodeSuccess Code = 0
-	CodeRunning Code = iota + 1000
-	CodeFailed
-	CodeNoData
-	CodePending
-	CodePaused
-	CodeSkipped
-)
-
-var CodeMap = map[Code]string{
-	CodeSuccess: "success",
-	CodeRunning: "running",
-	CodeFailed:  "failed",
-	CodeNoData:  "no data",
-	CodePending: "pending",
-	CodePaused:  "paused",
-	CodeSkipped: "skipped",
-}
 
 var WebsocketMessageType = map[int]string{
 	websocket.BinaryMessage: "binary",
