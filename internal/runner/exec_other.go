@@ -127,7 +127,7 @@ func (c *sCmd) Run(ctx context.Context) (exit common.ExecCode, err error) {
 	cmd.Stdout = tty
 	cmd.Stderr = tty
 	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Setsid:  true,
+		Setpgid: true,
 		Setctty: true,
 	}
 	r, w := io.Pipe()
