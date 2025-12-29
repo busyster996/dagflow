@@ -42,7 +42,7 @@ func Get(name string) (Factory, error) {
 
 // default runner
 func init() {
-	// sh/bash/cmd/powershell/python(2/3) runner
+	// sh/bash/cmd/powershell/python3 runner
 	Register("exec", func(storage storage.IStep, subCmd, workspace, scriptDir string) (IRunner, error) {
 		var c = &sCmd{
 			storage:   storage,
@@ -50,8 +50,8 @@ func init() {
 			shell:     subCmd,
 		}
 		c.ctx, c.cancel = context.WithCancel(context.Background())
-		c.scriptName = filepath.Join(scriptDir, ksuid.New().String())
-		c.scriptName = c.scriptName + c.scriptSuffix()
+		c.scriptPath = filepath.Join(scriptDir, ksuid.New().String())
+		c.scriptPath = c.scriptPath + c.scriptSuffix()
 		if err := os.MkdirAll(scriptDir, os.ModePerm); err != nil {
 			return nil, err
 		}
@@ -62,9 +62,10 @@ func init() {
 		if c.shell == "cmd" || c.shell == "powershell" {
 			content = c.utf8ToGb2312(content)
 		}
-		if err = os.WriteFile(c.scriptName, []byte(content), os.ModePerm); err != nil {
+		if err = os.WriteFile(c.scriptPath, []byte(content), os.ModePerm); err != nil {
 			return nil, err
 		}
+		c.codeFilePath = filepath.Join(os.TempDir(), c.randomFilename("exitcode", ".txt"))
 		return c, nil
 	})
 	// mkdir runner
