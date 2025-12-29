@@ -65,7 +65,6 @@ func init() {
 		if err = os.WriteFile(c.scriptPath, []byte(content), os.ModePerm); err != nil {
 			return nil, err
 		}
-		c.codeFilePath = filepath.Join(os.TempDir(), c.randomFilename("exitcode", ".txt"))
 		return c, nil
 	})
 	// mkdir runner
