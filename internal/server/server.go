@@ -167,10 +167,11 @@ func (p *sServer) close() {
 }
 
 func (p *sServer) newTusSvr(basePath string) error {
-	_ = os.MkdirAll(viper.GetString(""), os.ModeDir)
+	tmpdir := filepath.Join(viper.GetString("workspace_dir"), ".tusd")
+	_ = os.MkdirAll(tmpdir, os.ModeDir)
 	composer := tusd.NewStoreComposer()
 	if viper.GetString("redis_uri") != "" {
-		_store, err := redisstore.New(viper.GetString("workspace_dir"), viper.GetString("redis_uri"))
+		_store, err := redisstore.New(tmpdir, viper.GetString("redis_uri"))
 		if err != nil {
 			logx.Errorln(err)
 			return err
@@ -183,8 +184,8 @@ func (p *sServer) newTusSvr(basePath string) error {
 		_store.UseIn(composer)
 		_locker.UseIn(composer)
 	} else {
-		_store := filestore.New(viper.GetString("workspace_dir"))
-		_locker := filelocker.New(viper.GetString("workspace_dir"))
+		_store := filestore.New(tmpdir)
+		_locker := filelocker.New(tmpdir)
 		_store.UseIn(composer)
 		_locker.UseIn(composer)
 	}
@@ -212,7 +213,7 @@ func (p *sServer) newTusSvr(basePath string) error {
 					filename = filepath.Base(hook.Upload.ID)
 				}
 
-				src := filepath.Join(os.TempDir(), ".tusd", hook.Upload.ID)
+				src := filepath.Join(tmpdir, hook.Upload.ID)
 				dst := filepath.Join(viper.GetString("workspace_dir"), filepath.Dir(hook.Upload.ID), filename)
 				if err = utility.CopyFile(src, dst); err != nil {
 					return tusd.HTTPResponse{
