@@ -9,8 +9,6 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"syscall"
-
-	"github.com/busyster996/dagflow/pkg/logx"
 )
 
 func (s *script) execSysScript() (code int, err error) {
@@ -22,7 +20,7 @@ _save_exit_code() {
 	exit $code
 }
 trap _save_exit_code EXIT INT TERM
-"%s"
+"%s" "$@"
 `, s.path)
 	wrapperPath := filepath.Join(os.TempDir(), s.randomFilename("wrapper", ".sh"))
 	defer func() {
@@ -31,7 +29,9 @@ trap _save_exit_code EXIT INT TERM
 	if err = os.WriteFile(wrapperPath, []byte(wrapperContent), os.ModePerm); err != nil {
 		return 255, err
 	}
-	return s.exec("sh", wrapperPath)
+	// 将包装脚本路径和用户参数合并传递给 sh
+	args := append([]string{wrapperPath}, s.args...)
+	return s.exec("sh", args...)
 }
 
 func (s *script) beforeExec() {
@@ -42,7 +42,7 @@ func (s *script) beforeExec() {
 	s.cmd.Cancel = func() error {
 		defer func() {
 			if r := recover(); r != nil {
-				logx.Errorf("cmd cancel panic: %v\n%s", r, string(debug.Stack()))
+				s.logger.Errorf("[SYSTEM] cmd cancel panic: %v\n%s", r, string(debug.Stack()))
 			}
 			_ = os.WriteFile(s.codeFilePath, []byte("137"), os.ModePerm)
 		}()

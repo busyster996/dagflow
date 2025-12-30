@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,8 +18,6 @@ import (
 	"sync"
 	"syscall"
 	"time"
-
-	"github.com/busyster996/dagflow/pkg/logx"
 )
 
 var (
@@ -30,16 +29,34 @@ const (
 	maxCapacity = 100 * 1024 * 1024
 )
 
+// Logger 日志接口，允许自定义日志实现
+type Logger interface {
+	Infof(format string, args ...interface{})
+	Errorf(format string, args ...interface{})
+}
+
+// defaultLogger 默认日志实现，使用 xlog
+type defaultLogger struct{}
+
+func (l *defaultLogger) Infof(format string, args ...interface{}) {
+	slog.Info(fmt.Sprintf(format, args...))
+}
+
+func (l *defaultLogger) Errorf(format string, args ...interface{}) {
+	slog.Error(fmt.Sprintf(format, args...))
+}
+
 type script struct {
 	cmd          *exec.Cmd
 	ctx          context.Context
 	cancel       context.CancelFunc
 	env          []string
+	args         []string
 	dir          string
 	path         string
 	stdin        io.Reader
-	output       func(...string)
 	codeFilePath string
+	logger       Logger
 }
 
 type ScriptOption func(*script)
@@ -50,9 +67,15 @@ func WithScriptWorkdir(path string) ScriptOption {
 	}
 }
 
-func WithScriptEnv(env []string) ScriptOption {
+func WithScriptEnv(env ...string) ScriptOption {
 	return func(s *script) {
 		s.env = env
+	}
+}
+
+func WithScriptArgs(args ...string) ScriptOption {
+	return func(s *script) {
+		s.args = args
 	}
 }
 
@@ -62,9 +85,9 @@ func WithScriptStdin(stdin io.Reader) ScriptOption {
 	}
 }
 
-func WithOutput(fn func(...string)) ScriptOption {
+func WithScriptLogger(logger Logger) ScriptOption {
 	return func(s *script) {
-		s.output = fn
+		s.logger = logger
 	}
 }
 
@@ -86,7 +109,8 @@ func ExecScript(ctx context.Context, path string, options ...ScriptOption) (code
 	}
 
 	s := &script{
-		path: path,
+		path:   path,
+		logger: &defaultLogger{}, // 使用默认日志实现
 	}
 	s.codeFilePath = filepath.Join(os.TempDir(), s.randomFilename("exitcode", ".txt"))
 	s.abs()
@@ -140,7 +164,7 @@ func (s *script) randomFilename(prefix, ext string) string {
 }
 
 func (s *script) execPythonScript() (code int, err error) {
-	// 使用 Python 包装脚本以正确透传标准输入
+	// 使用 Python 包装脚本以正确透传标准输入和参数
 	wrapperContent := fmt.Sprintf(`# -*- coding: utf-8 -*-
 import sys
 import os
@@ -148,6 +172,9 @@ import runpy
 
 exit_code = 0
 script_path = r'%s'
+
+# 设置 sys.argv，第一个参数是脚本路径，后续是传入的参数
+sys.argv = [script_path] + sys.argv[1:]
 
 try:
     runpy.run_path(script_path, run_name='__main__')
@@ -174,7 +201,9 @@ finally:
 	if err = os.WriteFile(wrapperPath, []byte(wrapperContent), os.ModePerm); err != nil {
 		return 255, err
 	}
-	return s.exec("python", "-u", wrapperPath)
+	// 将包装脚本路径和用户参数合并传递给 python
+	args := append([]string{"-u", wrapperPath}, s.args...)
+	return s.exec("python", args...)
 }
 
 func (s *script) exec(command string, args ...string) (code int, err error) {
@@ -225,9 +254,9 @@ func (s *script) exec(command string, args ...string) (code int, err error) {
 func (s *script) consoleOutput(title string, reader io.ReadCloser) {
 	defer func() {
 		if r := recover(); r != nil {
-			logx.Errorf("consoleOutput panic:%v\n%s", r, string(debug.Stack()))
+			s.logger.Errorf("[SYSTEM] consoleOutput panic:%v\n%s", r, string(debug.Stack()))
 		}
-		logx.Infof("stop %s console print", title)
+		s.logger.Infof("[SYSTEM] stop %s console print", title)
 	}()
 
 	scanner := bufio.NewScanner(reader)
@@ -239,10 +268,7 @@ func (s *script) consoleOutput(title string, reader io.ReadCloser) {
 			continue
 		}
 		line = s.transform(line)
-		//logx.Infof("[%s] %s", title, line)
-		if s.output != nil {
-			s.output(line)
-		}
+		s.logger.Infof("[%s] %s", title, line)
 	}
 }
 

@@ -75,9 +75,9 @@ func (c *sCmd) Run(ctx context.Context) (exit common.ExecCode, err error) {
 	}
 	code, err := xexec.ExecScript(
 		c.ctx, c.scriptPath,
-		xexec.WithScriptEnv(c.envs()),
+		xexec.WithScriptEnv(c.envs()...),
 		xexec.WithScriptWorkdir(c.workspace),
-		xexec.WithOutput(c.storage.Log().Write),
+		xexec.WithScriptLogger(c),
 	)
 	exit = common.ExecCode(code)
 	if c.ctx.Err() != nil {
@@ -184,4 +184,12 @@ func (c *sCmd) utf8ToGb2312(s string) string {
 	}
 
 	return string(d)
+}
+
+func (c *sCmd) Infof(format string, args ...interface{}) {
+	c.storage.Log().Writef(format, args...)
+}
+
+func (c *sCmd) Errorf(format string, args ...interface{}) {
+	c.storage.Log().Writef(format, args...)
 }

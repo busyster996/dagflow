@@ -5,6 +5,17 @@ import platform
 
 # 输出 Hello World
 print("Hello World")
+
+# 获取并打印命令行参数
+print(f"\n脚本路径: {sys.argv[0]}")
+print(f"参数数量: {len(sys.argv) - 1}")
+if len(sys.argv) > 1:
+    print("参数列表:")
+    for i, arg in enumerate(sys.argv[1:], 1):
+        print(f"  参数 {i}: {arg}")
+else:
+    print("没有传递任何参数")
+print()
 # 从标准输入读取每一行（支持管道和非交互模式）
 try:
     while True:

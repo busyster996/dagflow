@@ -17,8 +17,6 @@ import (
 	"golang.org/x/sys/windows"
 	"golang.org/x/text/encoding/simplifiedchinese"
 	"golang.org/x/text/transform"
-
-	"github.com/busyster996/dagflow/pkg/logx"
 )
 
 var (
@@ -40,7 +38,7 @@ func (s *script) execSysScript() (code int, err error) {
 		wrapperPath = filepath.Join(os.TempDir(), s.randomFilename("wrapper", ".ps1"))
 		wrapperContent = fmt.Sprintf(`$ErrorActionPreference='Continue'
 try {
-    & "%s"
+    & "%s" @args
     if ($LASTEXITCODE -eq $null) {
         $exitCode = 0
     } else {
@@ -60,7 +58,7 @@ try {
 		args = []string{"/C"}
 		wrapperPath = filepath.Join(os.TempDir(), s.randomFilename("wrapper", ".bat"))
 		wrapperContent = fmt.Sprintf(`@echo off
-call "%s"
+call "%s" %%*
 set exitcode=%%ERRORLEVEL%%
 if not exist "%%XEXEC_CODE_FILE_PATH%%" (
     echo %%exitcode%% > "%%XEXEC_CODE_FILE_PATH%%"
@@ -73,7 +71,9 @@ exit /b %%exitcode%%`, s.path)
 	if err = os.WriteFile(wrapperPath, []byte(wrapperContent), os.ModePerm); err != nil {
 		return 255, err
 	}
+	// 将包装脚本路径和用户参数合并传递
 	args = append(args, wrapperPath)
+	args = append(args, s.args...)
 	return s.exec(command, args...)
 }
 
@@ -85,7 +85,7 @@ func (s *script) beforeExec() {
 	s.cmd.Cancel = func() error {
 		defer func() {
 			if r := recover(); r != nil {
-				logx.Errorln("cmd cancel panic: %v\n%s", r, string(debug.Stack()))
+				s.logger.Errorf("[SYSTEM] cmd cancel panic: %v\n%s", r, string(debug.Stack()))
 			}
 			_ = os.WriteFile(s.codeFilePath, []byte("137"), os.ModePerm)
 		}()
@@ -117,13 +117,13 @@ func (s *script) transform(line string) string {
 func (s *script) gbkToUtf8(line string) string {
 	defer func() {
 		if r := recover(); r != nil {
-			logx.Errorf("gbkToUtf8 panic:%v\n%s", r, string(debug.Stack()))
+			s.logger.Errorf("[SYSTEM] gbkToUtf8 panic:%v\n%s", r, string(debug.Stack()))
 		}
 	}()
 	reader := transform.NewReader(strings.NewReader(line), simplifiedchinese.GBK.NewDecoder())
 	b, err := io.ReadAll(reader)
 	if err != nil {
-		logx.Errorln(err)
+		s.logger.Errorf("[SYSTEM] gbkToUtf8 error: %v", err)
 		return line
 	}
 	return string(b)
@@ -132,7 +132,7 @@ func (s *script) gbkToUtf8(line string) string {
 func (s *script) isGBK(data string) bool {
 	defer func() {
 		if r := recover(); r != nil {
-			logx.Errorf("isGBK panic:%v\n%s", r, string(debug.Stack()))
+			s.logger.Errorf("[SYSTEM] isGBK panic:%v\n%s", r, string(debug.Stack()))
 		}
 	}()
 
