@@ -8,204 +8,463 @@
 
     <!-- Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔄</text></svg>">
+    
+    <style>
+        /* 加载指示器样式 */
+        #loading-indicator {
+            position: fixed;
+            inset: 0;
+            background: var(--gray-50, #f9fafb);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-content {
+            text-align: center;
+            max-width: 300px;
+        }
+
+        .loading-spinner {
+            margin: 0 auto 16px;
+        }
+
+        .loading-text {
+            color: var(--gray-600, #6b7280);
+            font-size: 14px;
+            margin: 8px 0;
+        }
+
+        .loading-progress {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--gray-500, #9ca3af);
+        }
+
+        /* 错误界面样式 */
+        .error-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: var(--gray-50, #f9fafb);
+            text-align: center;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            padding: 20px;
+        }
+
+        .error-content {
+            max-width: 500px;
+        }
+
+        .error-title {
+            color: var(--danger-color, #dc2626);
+            margin-bottom: 16px;
+        }
+
+        .error-message {
+            color: var(--gray-700, #374151);
+            margin-bottom: 12px;
+        }
+
+        .error-details {
+            font-size: 12px;
+            color: var(--gray-500, #9ca3af);
+            margin-top: 8px;
+            padding: 12px;
+            background: var(--gray-100, #f3f4f6);
+            border-radius: 6px;
+            word-break: break-word;
+        }
+
+        .error-actions {
+            margin-top: 24px;
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.8;
+        }
+
+        .btn-primary {
+            background: var(--primary-color, #3b82f6);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: var(--gray-200, #e5e7eb);
+            color: var(--gray-700, #374151);
+        }
+    </style>
 </head>
 <body>
 <!-- 加载指示器 -->
-<div id="loading-indicator" style="
-        position: fixed;
-        inset: 0;
-        background: var(--gray-50);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 9999;
-        transition: opacity 0.3s ease;
-    ">
-    <div style="text-align: center;">
-        <div class="loading" style="margin: 0 auto 16px;"></div>
-        <p style="color: var(--gray-600); font-size: 14px;">正在加载应用...</p>
+<div id="loading-indicator">
+    <div class="loading-content">
+        <div class="loading loading-spinner"></div>
+        <p class="loading-text">正在加载应用...</p>
+        <div class="loading-progress" id="loading-progress"></div>
     </div>
 </div>
 
 <script type="text/javascript">
-    function getBasePath() {
-        const currentUrl = new URL(window.location.href);
-        const pathSegments = currentUrl.pathname.split('/');
-        if (pathSegments[pathSegments.length - 1].includes('.')) {
-            pathSegments.pop();
+    /**
+     * DagFlow 应用加载器
+     * 负责按正确顺序加载所有依赖资源并初始化应用
+     */
+    (function() {
+        'use strict';
+
+        // ============ 配置部分 ============
+        
+        /**
+         * 获取应用基础路径
+         * @returns {string} 基础路径
+         */
+        function getBasePath() {
+            const currentUrl = new URL(window.location.href);
+            const pathSegments = currentUrl.pathname.split('/');
+            
+            // 移除文件名部分
+            if (pathSegments[pathSegments.length - 1].includes('.')) {
+                pathSegments.pop();
+            }
+            
+            let basePath = pathSegments.join('/');
+            
+            // 移除尾部斜杠
+            if (basePath.endsWith('/')) {
+                basePath = basePath.slice(0, -1);
+            }
+            
+            return basePath;
         }
-        let basePath = pathSegments.join('/');
-        if (basePath.endsWith('/')) {
-            basePath = basePath.slice(0, -1);
-        }
-        return basePath;
-    }
 
-    // 应用配置
-    const hostname = window.location.hostname;
-    const protocol = window.location.protocol;
-    const basePath = getBasePath();
-    const port = window.location.port || (protocol === 'https:' ? '443' : '80');
-    const wsProtocol = protocol === 'https:' ? 'wss' : 'ws';
-    const baseUrl = protocol + '//' + hostname + ':' + port + basePath;
-    const wsBaseUrl = wsProtocol + '://' + hostname + ':' + port + basePath;
-    const eventUrl = '/api/v1/event';
-    const taskUrl = '/api/v1/task';
-    const pipelineUrl = '/api/v1/pipeline';
+        // 应用配置对象
+        const AppConfig = {
+            hostname: window.location.hostname,
+            protocol: window.location.protocol,
+            basePath: getBasePath(),
+            port: window.location.port || (window.location.protocol === 'https:' ? '443' : '80'),
+            
+            get wsProtocol() {
+                return this.protocol === 'https:' ? 'wss' : 'ws';
+            },
+            
+            get baseUrl() {
+                return `${this.protocol}//${this.hostname}:${this.port}${this.basePath}`;
+            },
+            
+            get wsBaseUrl() {
+                return `${this.wsProtocol}://${this.hostname}:${this.port}${this.basePath}`;
+            },
+            
+            api: {
+                event: '/api/v1/event',
+                task: '/api/v1/task',
+                pipeline: '/api/v1/pipeline'
+            }
+        };
 
-    // 全局变量声明
-    window.monaco = null;
-    window.G6 = null;
+        // 暴露必要的全局变量供 main.js 使用
+        window.baseUrl = AppConfig.baseUrl;
+        window.wsBaseUrl = AppConfig.wsBaseUrl;
+        window.taskUrl = AppConfig.api.task;
+        window.pipelineUrl = AppConfig.api.pipeline;
+        window.eventUrl = AppConfig.api.event;
+        
+        // 全局变量声明
+        window.monaco = null;
+        window.G6 = null;
 
-    function loadCSS(filename) {
-        return new Promise((resolve, reject) => {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = filename;
-            link.onload = resolve;
-            link.onerror = () => reject(new Error(`CSS 加载失败: ${filename}`));
-            document.head.appendChild(link);
-        });
-    }
+        // ============ 资源加载器 ============
+        
+        /**
+         * 资源加载配置
+         */
+        const ResourceLoader = {
+            // 加载进度追踪
+            progress: {
+                total: 6,
+                loaded: 0,
+                resources: []
+            },
 
-    function loadJS(filename) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = filename;
-            script.onload = resolve;
-            script.onerror = () => reject(new Error(`JS 加载失败: ${filename}`));
-            document.body.appendChild(script);
-        });
-    }
+            /**
+             * 更新加载进度
+             * @param {string} resourceName - 资源名称
+             */
+            updateProgress(resourceName) {
+                this.progress.loaded++;
+                this.progress.resources.push(resourceName);
+                
+                const progressEl = document.getElementById('loading-progress');
+                if (progressEl) {
+                    const percent = Math.round((this.progress.loaded / this.progress.total) * 100);
+                    progressEl.textContent = `${resourceName} (${percent}%)`;
+                }
+            },
 
-    // 配置Monaco Editor
-    function setupMonacoEditor() {
-        return new Promise((resolve) => {
-            // 配置require路径
-            window.require = window.require || {};
-            window.require.config = window.require.config || function() {};
-
-            if (!window.require.config._configured) {
-                window.require.config({
-                    paths: { 'vs': baseUrl + '/vs' },
+            /**
+             * 加载CSS文件
+             * @param {string} filename - CSS文件路径
+             * @returns {Promise<void>}
+             */
+            loadCSS(filename) {
+                return new Promise((resolve, reject) => {
+                    const link = document.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.href = filename;
+                    
+                    link.onload = () => {
+                        this.updateProgress('样式');
+                        resolve();
+                    };
+                    
+                    link.onerror = () => {
+                        reject(new Error(`CSS 加载失败: ${filename}`));
+                    };
+                    
+                    document.head.appendChild(link);
                 });
-                window.require.config._configured = true;
-            }
+            },
 
-            // 确保只加载一次
-            if (window.monaco) {
-                resolve();
-                return;
-            }
+            /**
+             * 加载JavaScript文件
+             * @param {string} filename - JS文件路径
+             * @param {string} name - 资源显示名称
+             * @returns {Promise<void>}
+             */
+            loadJS(filename, name = 'JavaScript') {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = filename;
+                    
+                    script.onload = () => {
+                        this.updateProgress(name);
+                        resolve();
+                    };
+                    
+                    script.onerror = () => {
+                        reject(new Error(`JS 加载失败: ${filename}`));
+                    };
+                    
+                    document.body.appendChild(script);
+                });
+            },
 
-            window.require(['vs/editor/editor.main'], function(monaco) {
-                window.monaco = monaco;
-                console.log('Monaco Editor 加载完成');
-                resolve();
+            /**
+             * 配置并加载Monaco Editor
+             * @returns {Promise<void>}
+             */
+            setupMonacoEditor() {
+                return new Promise((resolve, reject) => {
+                    try {
+                        // 初始化require配置
+                        window.require = window.require || {};
+                        window.require.config = window.require.config || function() {};
+
+                        // 配置Monaco Editor路径（仅配置一次）
+                        if (!window.require.config._configured) {
+                            window.require.config({
+                                paths: { 'vs': AppConfig.baseUrl + '/vs' }
+                            });
+                            window.require.config._configured = true;
+                        }
+
+                        // 如果已加载，直接返回
+                        if (window.monaco) {
+                            this.updateProgress('Monaco Editor');
+                            resolve();
+                            return;
+                        }
+
+                        // 加载Monaco Editor主模块
+                        window.require(['vs/editor/editor.main'], (monaco) => {
+                            window.monaco = monaco;
+                            this.updateProgress('Monaco Editor');
+                            console.log('Monaco Editor 加载完成');
+                            resolve();
+                        }, (error) => {
+                            reject(new Error(`Monaco Editor 加载失败: ${error.message}`));
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            },
+
+            /**
+             * 按顺序加载所有资源
+             * @returns {Promise<void>}
+             */
+            async loadAll() {
+                const baseUrl = AppConfig.baseUrl;
+
+                // 1. 加载CSS
+                await this.loadCSS(`${baseUrl}/css/main.css`);
+
+                // 2. 加载 tus.js (必须在AMD加载器之前)
+                await this.loadJS(`${baseUrl}/js/tus.js`, 'tus.js');
+
+                // 3. 加载 G6 图形库
+                await this.loadJS(`${baseUrl}/js/g6.min.js`, 'G6');
+
+                // 4. 加载 Monaco Editor loader
+                await this.loadJS(`${baseUrl}/vs/loader.js`, 'Monaco Loader');
+
+                // 5. 配置并加载 Monaco Editor
+                await this.setupMonacoEditor();
+
+                // 6. 加载主应用
+                await this.loadJS(`${baseUrl}/js/main.js`, '主应用');
+
+                console.log('所有资源加载完成');
+            }
+        };
+
+        // ============ 应用初始化 ============
+
+        /**
+         * 应用管理器
+         */
+        const AppManager = {
+            /**
+             * 验证依赖是否正确加载
+             * @throws {Error} 如果依赖未正确加载
+             */
+            validateDependencies() {
+                if (!window.G6) {
+                    throw new Error('G6 图形库未正确加载');
+                }
+                if (!window.monaco) {
+                    throw new Error('Monaco Editor 未正确加载');
+                }
+                if (typeof Main === 'undefined') {
+                    throw new Error('主应用类 Main 未定义');
+                }
+            },
+
+            /**
+             * 显示错误界面
+             * @param {Error} error - 错误对象
+             */
+            showError(error) {
+                console.error('应用启动失败:', error);
+                
+                const errorHtml = `
+                    <div class="error-container">
+                        <div class="error-content">
+                            <h2 class="error-title">应用启动失败</h2>
+                            <p class="error-message">无法加载 DagFlow 应用，请尝试以下操作：</p>
+                            <ul style="text-align: left; color: var(--gray-600, #6b7280); margin: 16px 0;">
+                                <li>刷新页面重试</li>
+                                <li>清除浏览器缓存</li>
+                                <li>检查网络连接</li>
+                                <li>联系系统管理员</li>
+                            </ul>
+                            ${error.message ? `<div class="error-details">错误详情: ${error.message}</div>` : ''}
+                            <div class="error-actions">
+                                <button class="btn btn-primary" onclick="location.reload()">刷新页面</button>
+                                <button class="btn btn-secondary" onclick="console.log(${JSON.stringify(error)})">查看详情</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.innerHTML = errorHtml;
+            },
+
+            /**
+             * 隐藏加载指示器
+             */
+            hideLoadingIndicator() {
+                const loadingIndicator = document.getElementById('loading-indicator');
+                if (loadingIndicator) {
+                    // 延迟隐藏以确保平滑过渡
+                    setTimeout(() => {
+                        loadingIndicator.style.opacity = '0';
+                        setTimeout(() => {
+                            loadingIndicator.remove();
+                        }, 300);
+                    }, 500);
+                }
+            },
+
+            /**
+             * 初始化应用
+             */
+            async init() {
+                try {
+                    // 加载所有资源
+                    await ResourceLoader.loadAll();
+
+                    // 验证依赖
+                    this.validateDependencies();
+
+                    // 初始化主应用
+                    console.log('开始初始化主应用...');
+                    new Main();
+                    console.log('DagFlow 应用已成功启动');
+
+                    // 隐藏加载指示器
+                    this.hideLoadingIndicator();
+                } catch (error) {
+                    // 显示错误界面
+                    this.showError(error);
+                }
+            }
+        };
+
+        // ============ 全局错误处理 ============
+
+        /**
+         * 全局错误处理器
+         */
+        window.addEventListener('error', (event) => {
+            console.error('全局错误:', {
+                message: event.message,
+                filename: event.filename,
+                lineno: event.lineno,
+                colno: event.colno,
+                error: event.error
             });
         });
-    }
 
-    async function loadResources() {
-        try {
-            // 1. 加载 CSS
-            await loadCSS(`${baseUrl}/css/main.css`);
+        /**
+         * Promise 错误处理器
+         */
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('未处理的 Promise 错误:', {
+                reason: event.reason,
+                promise: event.promise
+            });
+        });
 
-            // 2. 加载 G6
-            await loadJS(`${baseUrl}/js/g6.min.js`);
-            console.log('G6 加载完成');
+        // ============ 应用入口 ============
 
-            // 3. 加载 Monaco Editor loader
-            await loadJS(`${baseUrl}/vs/loader.js`);
+        /**
+         * DOM 加载完成后启动应用
+         */
+        document.addEventListener('DOMContentLoaded', () => {
+            AppManager.init();
+        });
 
-            // 4. 配置并加载 Monaco Editor
-            await setupMonacoEditor();
-
-            // 5. 最后加载主应用
-            await loadJS(`${baseUrl}/js/main.js`);
-
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    async function initApp() {
-        try {
-            await loadResources();
-            console.log('所有资源加载完成');
-
-            // 确保G6和Monaco都已加载
-            if (!window.G6) {
-                throw new Error('G6 未正确加载');
-            }
-            if (!window.monaco) {
-                throw new Error('Monaco Editor 未正确加载');
-            }
-
-            console.log('开始初始化主应用...');
-            new Main();
-            console.log('dagflow 应用已成功启动');
-        } catch (error) {
-            console.error('应用启动失败:', error);
-            // 显示错误界面
-            document.body.innerHTML = `
-                <div style="
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    height: 100vh;
-                    background: var(--gray-50);
-                    color: var(--danger-color);
-                    text-align: center;
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-                ">
-                    <div>
-                        <h2>应用启动失败</h2>
-                        <p>请刷新页面重试，或联系管理员</p>
-                        <p style="font-size: 12px; color: var(--gray-500); margin-top: 8px;">
-                            错误信息: ${error.message}
-                        </p>
-                        <button onclick="location.reload()" style="
-                            margin-top: 16px;
-                            padding: 8px 16px;
-                            background: var(--primary-color);
-                            color: white;
-                            border: none;
-                            border-radius: 6px;
-                            cursor: pointer;
-                        ">刷新页面</button>
-                    </div>
-                </div>
-            `;
-        }
-    }
-
-    document.addEventListener("DOMContentLoaded", async () => {
-        try {
-            await initApp();
-            // 隐藏加载指示器
-            const loadingIndicator = document.getElementById('loading-indicator');
-            if (loadingIndicator) {
-                setTimeout(() => {
-                    loadingIndicator.style.opacity = '0';
-                    setTimeout(() => {
-                        loadingIndicator.remove();
-                    }, 300);
-                }, 500);
-            }
-        } catch (error) {
-            console.error('应用启动失败:', error);
-        }
-    });
-
-    // 全局错误处理
-    window.addEventListener('error', (event) => {
-        console.error('全局错误:', event.error);
-    });
-
-    window.addEventListener('unhandledrejection', (event) => {
-        console.error('未处理的Promise错误:', event.reason);
-    });
+    })();
 </script>
 </body>
 </html>

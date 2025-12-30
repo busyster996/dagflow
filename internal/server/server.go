@@ -168,7 +168,7 @@ func (p *sServer) close() {
 
 func (p *sServer) newTusSvr(basePath string) error {
 	tmpdir := filepath.Join(viper.GetString("workspace_dir"), ".tusd")
-	_ = os.MkdirAll(tmpdir, os.ModeDir)
+	_ = os.MkdirAll(tmpdir, os.ModePerm)
 	composer := tusd.NewStoreComposer()
 	if viper.GetString("redis_uri") != "" {
 		_store, err := redisstore.New(tmpdir, viper.GetString("redis_uri"))

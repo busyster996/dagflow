@@ -2049,6 +2049,12 @@ class Main {
                     <div class="menu">
                         <button id="task-list" class="button-sure">任务管理</button>
                         <button id="pipeline-list" class="button-sure">流水线管理</button>
+                        <button id="file-upload-btn" class="button-sure">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;">
+                                <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z"/>
+                            </svg>
+                            文件上传
+                        </button>
                     </div>
                     <div id="options">
                         <button id="add-task" class="button-sure" style="display: block">
@@ -2141,6 +2147,7 @@ class Main {
         document.getElementById("pipeline-list")?.addEventListener("click", () => this.showPipelineView());
         document.getElementById("add-task")?.addEventListener("click", () => new TaskFormModal());
         document.getElementById("add-pipeline")?.addEventListener("click", () => new PipelineFormModal());
+        document.getElementById("file-upload-btn")?.addEventListener("click", () => new FileUploadModal());
     }
 
     showTaskView() {
@@ -2239,6 +2246,678 @@ class EventListener {
                 }, 300);
             }
         }, 1000);
+    }
+}
+
+// ==================== 文件上传管理器 ====================
+class FileUploadManager {
+    constructor() {
+        this.uploads = new Map();
+        this.nextFileId = 1;
+        this.activeUploads = new Set();
+        this.isGlobalPaused = false;
+        this.endpoint = `${baseUrl}/api/v1/files/`;
+    }
+
+    async initializeElements() {
+        this.fileInput = document.querySelector('#file-upload-input');
+        this.selectFileBtn = document.querySelector('#select-file-btn');
+        this.dropZone = document.querySelector('#drop-zone');
+        this.uploadQueue = document.querySelector('#upload-queue');
+        this.fileList = document.querySelector('#file-list');
+        this.uploadHistory = document.querySelector('#upload-history');
+
+        // 按钮
+        this.startAllBtn = document.querySelector('#start-all-btn');
+        this.pauseAllBtn = document.querySelector('#pause-all-btn');
+        this.resumeAllBtn = document.querySelector('#resume-all-btn');
+        this.clearAllBtn = document.querySelector('#clear-all-btn');
+
+        // 配置
+        this.chunkInput = document.querySelector('#chunk-size');
+        this.taskidInput = document.querySelector('#task-id');
+        this.parallelInput = document.querySelector('#parallel-uploads');
+        this.queueConcurrencyInput = document.querySelector('#queue-concurrency');
+
+        // 统计
+        this.totalCountEl = document.querySelector('#total-count');
+        this.waitingCountEl = document.querySelector('#waiting-count');
+        this.uploadingCountEl = document.querySelector('#uploading-count');
+        this.pausedCountEl = document.querySelector('#paused-count');
+        this.errorCountEl = document.querySelector('#error-count');
+
+        this.initEvents();
+    }
+
+
+    initEvents() {
+        if (!this.selectFileBtn) return;
+
+        this.selectFileBtn.addEventListener('click', () => this.fileInput.click());
+        this.fileInput.addEventListener('change', (e) => this.handleFileSelect(e.target.files));
+
+        // 拖拽事件
+        this.dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.dropZone.classList.add('dragover');
+        });
+
+        this.dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            this.dropZone.classList.remove('dragover');
+        });
+
+        this.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.dropZone.classList.remove('dragover');
+            this.handleFileSelect(e.dataTransfer.files);
+        });
+
+        // 按钮事件
+        this.startAllBtn?.addEventListener('click', () => this.startAllUploads());
+        this.pauseAllBtn?.addEventListener('click', () => this.pauseAllUploads());
+        this.resumeAllBtn?.addEventListener('click', () => this.resumeAllUploads());
+        this.clearAllBtn?.addEventListener('click', () => this.clearAllFiles());
+        this.queueConcurrencyInput?.addEventListener('change', () => this.processQueue());
+    }
+
+    handleFileSelect(files) {
+        if (!files || files.length === 0) return;
+
+        Array.from(files).forEach(file => {
+            this.addFileToQueue(file);
+        });
+
+        this.uploadQueue.classList.remove('d-none');
+        this.fileInput.value = '';
+        this.updateStats();
+    }
+
+    addFileToQueue(file) {
+        const fileId = this.nextFileId++;
+        const uploadInfo = {
+            id: fileId,
+            file: file,
+            upload: null,
+            status: 'waiting',
+            progress: 0,
+            element: null,
+            startTime: null,
+            pausedByUser: false
+        };
+
+        this.uploads.set(fileId, uploadInfo);
+        this.createFileElement(uploadInfo);
+        this.updateStats();
+    }
+
+    createFileElement(uploadInfo) {
+        const fileElement = document.createElement('div');
+        fileElement.className = 'file-item waiting';
+        fileElement.innerHTML = `
+            <div class="file-header">
+                <div class="file-icon">📄</div>
+                <div class="file-info">
+                    <h4 class="file-name">${uploadInfo.file.name}</h4>
+                    <div class="file-meta">
+                        <span>📦 ${this.formatFileSize(uploadInfo.file.size)}</span>
+                        <span>🔢 ID: ${uploadInfo.id}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="file-status">
+                <span class="status-badge status-waiting">排队中</span>
+            </div>
+
+            <div class="progress-container d-none">
+                <div class="progress-header">
+                    <span class="progress-text">0%</span>
+                    <span class="progress-speed"></span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="file-actions">
+                <button class="btn btn-sm button-sure start-btn" data-id="${uploadInfo.id}">开始</button>
+                <button class="btn btn-sm button-cancel pause-btn d-none" data-id="${uploadInfo.id}">暂停</button>
+                <button class="btn btn-sm button-sure resume-btn d-none" data-id="${uploadInfo.id}">恢复</button>
+                <button class="btn btn-sm button-cancel remove-btn" data-id="${uploadInfo.id}">移除</button>
+            </div>
+        `;
+
+        uploadInfo.element = fileElement;
+        this.fileList.appendChild(fileElement);
+
+        // 绑定事件
+        fileElement.querySelector('.start-btn')?.addEventListener('click', () => this.startUpload(uploadInfo.id));
+        fileElement.querySelector('.pause-btn')?.addEventListener('click', () => this.pauseUpload(uploadInfo.id));
+        fileElement.querySelector('.resume-btn')?.addEventListener('click', () => this.resumeUpload(uploadInfo.id));
+        fileElement.querySelector('.remove-btn')?.addEventListener('click', () => this.removeFile(uploadInfo.id));
+    }
+
+    getQueueConcurrency() {
+        const value = parseInt(this.queueConcurrencyInput?.value, 10);
+        return isNaN(value) ? 3 : Math.max(1, Math.min(10, value));
+    }
+
+    processQueue() {
+        if (this.isGlobalPaused) return;
+
+        const maxConcurrency = this.getQueueConcurrency();
+        const currentUploading = this.activeUploads.size;
+
+        if (currentUploading >= maxConcurrency) return;
+
+        const waitingFiles = Array.from(this.uploads.values())
+            .filter(uploadInfo => uploadInfo.status === 'waiting')
+            .sort((a, b) => a.id - b.id);
+
+        const slotsAvailable = maxConcurrency - currentUploading;
+        const filesToStart = waitingFiles.slice(0, slotsAvailable);
+
+        filesToStart.forEach(uploadInfo => {
+            this.startUploadInternal(uploadInfo.id);
+        });
+    }
+
+    startUpload(fileId) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo) return;
+
+        if (uploadInfo.status === 'paused') {
+            uploadInfo.pausedByUser = false;
+            this.resumeUpload(fileId);
+            return;
+        }
+
+        if (uploadInfo.status !== 'waiting') return;
+
+        if (this.activeUploads.size < this.getQueueConcurrency() && !this.isGlobalPaused) {
+            this.startUploadInternal(fileId);
+        }
+    }
+
+    async startUploadInternal(fileId) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo || uploadInfo.status === 'uploading') return;
+
+        // 确保tus已加载
+        if (!window.tus) {
+            Utils.showToast('上传库未加载，请稍后重试', 'error');
+            this.updateFileStatus(fileId, 'error');
+            return;
+        }
+
+        this.activeUploads.add(fileId);
+        this.updateFileStatus(fileId, 'uploading');
+
+        let chunkSize = Number.parseInt(this.chunkInput?.value, 10);
+        if (Number.isNaN(chunkSize)) chunkSize = 5242880;
+
+        let parallelUploads = Number.parseInt(this.parallelInput?.value, 10);
+        if (Number.isNaN(parallelUploads)) parallelUploads = 6;
+
+        const options = {
+            endpoint: this.endpoint,
+            chunkSize: chunkSize,
+            addRequestId: true,
+            uploadDataDuringCreation: true,
+            removeFingerprintOnSuccess: true,
+            retryDelays: [0, 1000, 3000, 5000],
+            parallelUploads: parallelUploads,
+            metadata: {
+                filename: uploadInfo.file.name,
+                filetype: uploadInfo.file.type,
+                task_id: this.taskidInput?.value.toString() || 'default-task',
+            },
+            metadataForPartialUploads: {
+                task_id: this.taskidInput?.value.toString() || 'default-task',
+            },
+            onError: (error) => this.handleUploadError(fileId, error),
+            onProgress: (bytesUploaded, bytesTotal) => this.handleUploadProgress(fileId, bytesUploaded, bytesTotal),
+            onSuccess: () => this.handleUploadSuccess(fileId),
+        };
+
+        uploadInfo.upload = new window.tus.Upload(uploadInfo.file, options);
+        uploadInfo.startTime = Date.now();
+
+        try {
+            const previousUploads = await uploadInfo.upload.findPreviousUploads();
+            if (previousUploads.length > 0) {
+                uploadInfo.upload.resumeFromPreviousUpload(previousUploads[0]);
+            }
+            uploadInfo.upload.start();
+        } catch (error) {
+            this.handleUploadError(fileId, error);
+        }
+    }
+
+    pauseUpload(fileId, isUserAction = true) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo || !uploadInfo.upload) return;
+
+        uploadInfo.pausedByUser = isUserAction;
+        uploadInfo.upload.abort();
+        this.activeUploads.delete(fileId);
+        this.updateFileStatus(fileId, 'paused');
+    }
+
+    resumeUpload(fileId) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo || !uploadInfo.upload || uploadInfo.status !== 'paused') return;
+
+        uploadInfo.pausedByUser = false;
+
+        if (this.activeUploads.size >= this.getQueueConcurrency()) {
+            Utils.showToast('当前上传数量已达上限', 'warning');
+            return;
+        }
+
+        this.resumeUploadInternal(fileId);
+    }
+
+    resumeUploadInternal(fileId) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo || !uploadInfo.upload || uploadInfo.status !== 'paused') return;
+
+        if (this.activeUploads.size >= this.getQueueConcurrency()) {
+            uploadInfo.pausedByUser = false;
+            this.updateFileStatus(fileId, 'waiting');
+            return;
+        }
+
+        this.activeUploads.add(fileId);
+        uploadInfo.upload.start();
+        this.updateFileStatus(fileId, 'uploading');
+    }
+
+    removeFile(fileId) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo) return;
+
+        if (uploadInfo.upload) {
+            uploadInfo.upload.abort();
+        }
+
+        this.activeUploads.delete(fileId);
+        uploadInfo.element.remove();
+        this.uploads.delete(fileId);
+
+        if (this.uploads.size === 0) {
+            this.uploadQueue.classList.add('d-none');
+        }
+
+        this.updateStats();
+        this.processQueue();
+    }
+
+    updateFileStatus(fileId, status) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo) return;
+
+        uploadInfo.status = status;
+
+        const element = uploadInfo.element;
+        const statusBadge = element.querySelector('.status-badge');
+        const startBtn = element.querySelector('.start-btn');
+        const pauseBtn = element.querySelector('.pause-btn');
+        const resumeBtn = element.querySelector('.resume-btn');
+        const progressContainer = element.querySelector('.progress-container');
+
+        element.className = `file-item ${status}`;
+        statusBadge.className = `status-badge status-${status}`;
+
+        switch (status) {
+            case 'waiting':
+                statusBadge.textContent = '排队中';
+                startBtn.classList.remove('d-none');
+                pauseBtn.classList.add('d-none');
+                resumeBtn.classList.add('d-none');
+                progressContainer.classList.add('d-none');
+                break;
+
+            case 'uploading':
+                statusBadge.textContent = '上传中';
+                startBtn.classList.add('d-none');
+                pauseBtn.classList.remove('d-none');
+                resumeBtn.classList.add('d-none');
+                progressContainer.classList.remove('d-none');
+                break;
+
+            case 'paused':
+                statusBadge.textContent = '已暂停';
+                startBtn.classList.add('d-none');
+                pauseBtn.classList.add('d-none');
+                resumeBtn.classList.remove('d-none');
+                break;
+
+            case 'error':
+                statusBadge.textContent = '失败';
+                startBtn.classList.remove('d-none');
+                pauseBtn.classList.add('d-none');
+                resumeBtn.classList.add('d-none');
+                break;
+        }
+
+        this.updateStats();
+    }
+
+    updateStats() {
+        const statusCounts = {
+            total: this.uploads.size,
+            waiting: 0,
+            uploading: 0,
+            paused: 0,
+            error: 0
+        };
+
+        this.uploads.forEach(uploadInfo => {
+            statusCounts[uploadInfo.status]++;
+        });
+
+        if (this.totalCountEl) this.totalCountEl.textContent = statusCounts.total;
+        if (this.waitingCountEl) this.waitingCountEl.textContent = statusCounts.waiting;
+        if (this.uploadingCountEl) this.uploadingCountEl.textContent = statusCounts.uploading;
+        if (this.pausedCountEl) this.pausedCountEl.textContent = statusCounts.paused;
+        if (this.errorCountEl) this.errorCountEl.textContent = statusCounts.error;
+    }
+
+    handleUploadProgress(fileId, bytesUploaded, bytesTotal) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo) return;
+
+        const percentage = ((bytesUploaded / bytesTotal) * 100).toFixed(1);
+        uploadInfo.progress = percentage;
+
+        const progressBar = uploadInfo.element.querySelector('.progress-bar');
+        const progressText = uploadInfo.element.querySelector('.progress-text');
+        const speedElement = uploadInfo.element.querySelector('.progress-speed');
+
+        progressBar.style.width = `${percentage}%`;
+        progressText.textContent = `${percentage}%`;
+
+        if (uploadInfo.startTime) {
+            const elapsed = (Date.now() - uploadInfo.startTime) / 1000;
+            const speed = bytesUploaded / elapsed;
+            speedElement.textContent = this.formatFileSize(speed) + '/s';
+        }
+    }
+
+    handleUploadSuccess(fileId) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo) return;
+
+        this.activeUploads.delete(fileId);
+        this.addToHistory(uploadInfo);
+        this.removeFile(fileId);
+        this.processQueue();
+        Utils.showToast('文件上传成功', 'success');
+    }
+
+    handleUploadError(fileId, error) {
+        const uploadInfo = this.uploads.get(fileId);
+        if (!uploadInfo) return;
+
+        this.activeUploads.delete(fileId);
+        this.updateFileStatus(fileId, 'error');
+
+        const progressBar = uploadInfo.element.querySelector('.progress-bar');
+        progressBar.classList.add('error');
+
+        console.error(`文件 ${uploadInfo.file.name} 上传失败:`, error);
+        Utils.showToast('文件上传失败', 'error');
+        this.processQueue();
+    }
+
+    addToHistory(uploadInfo) {
+        const historyItem = document.createElement('div');
+        historyItem.className = 'history-item';
+        historyItem.innerHTML = `
+            <div class="history-header">
+                <div class="success-icon">✓</div>
+                <div class="history-info">
+                    <h4 class="history-name">${uploadInfo.file.name}</h4>
+                </div>
+            </div>
+
+            <div class="history-meta">
+                <div class="history-meta-item">
+                    <span>📦 ${this.formatFileSize(uploadInfo.file.size)}</span>
+                </div>
+                <div class="history-meta-item">
+                    <span>🕒 ${new Date().toLocaleString()}</span>
+                </div>
+            </div>
+
+            <div class="history-actions">
+                <a href="${uploadInfo.upload.url}" class="btn btn-sm button-sure" target="_blank">下载</a>
+                <button class="btn btn-sm button-cancel copy-link-btn">复制链接</button>
+            </div>
+        `;
+
+        // 清除空状态
+        const emptyState = this.uploadHistory.querySelector('.empty-state');
+        if (emptyState) {
+            emptyState.remove();
+        }
+
+        this.uploadHistory.insertBefore(historyItem, this.uploadHistory.firstChild);
+
+        // 绑定复制链接事件
+        historyItem.querySelector('.copy-link-btn')?.addEventListener('click', () => {
+            this.copyToClipboard(uploadInfo.upload.url);
+        });
+    }
+
+    startAllUploads() {
+        this.isGlobalPaused = false;
+
+        this.uploads.forEach((uploadInfo, fileId) => {
+            if (uploadInfo.status === 'paused') {
+                uploadInfo.pausedByUser = false;
+                this.updateFileStatus(fileId, 'waiting');
+            }
+        });
+
+        this.processQueue();
+    }
+
+    pauseAllUploads() {
+        this.isGlobalPaused = true;
+
+        this.uploads.forEach((uploadInfo, fileId) => {
+            if (uploadInfo.status === 'uploading') {
+                this.pauseUpload(fileId, false);
+            }
+        });
+    }
+
+    resumeAllUploads() {
+        this.isGlobalPaused = false;
+
+        const pausedFiles = Array.from(this.uploads.values())
+            .filter(uploadInfo => uploadInfo.status === 'paused' && !uploadInfo.pausedByUser);
+
+        if (pausedFiles.length === 0) {
+            this.processQueue();
+            return;
+        }
+
+        pausedFiles.forEach(uploadInfo => {
+            this.resumeUploadInternal(uploadInfo.id);
+        });
+
+        setTimeout(() => {
+            this.processQueue();
+        }, 100);
+    }
+
+    clearAllFiles() {
+        if (!confirm('确定要清空所有文件吗？')) return;
+
+        const uploadIds = Array.from(this.uploads.keys());
+        uploadIds.forEach(fileId => {
+            this.removeFile(fileId);
+        });
+        this.isGlobalPaused = false;
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    }
+
+    copyToClipboard(text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(() => {
+                Utils.showToast('链接已复制到剪贴板', 'success');
+            }).catch(() => {
+                this.fallbackCopyTextToClipboard(text);
+            });
+        } else {
+            this.fallbackCopyTextToClipboard(text);
+        }
+    }
+
+    fallbackCopyTextToClipboard(text) {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        try {
+            document.execCommand('copy');
+            Utils.showToast('链接已复制到剪贴板', 'success');
+        } catch (err) {
+            Utils.showToast('复制失败，请手动复制链接', 'error');
+        }
+        document.body.removeChild(textArea);
+    }
+}
+
+// ==================== 文件上传模态框 ====================
+class FileUploadModal extends BaseModal {
+    constructor() {
+        super({
+            id: 'file-upload',
+            title: '文件上传中心',
+            size: 'large'
+        });
+
+        this.uploadManager = new FileUploadManager();
+        
+        // 检查 tus 是否可用
+        if (!window.tus) {
+            Utils.showToast('上传库未加载，请刷新页面重试', 'error');
+            console.error('tus.js 未加载');
+            return;
+        }
+        
+        this.create();
+    }
+
+    getBodyContent() {
+        return `
+            <div class="card-body" style="position: fixed; inset: 81px 24px 24px; display: flex; flex-direction: column; gap: 20px;">
+                <div style="background: white; border-radius: var(--border-radius); padding: 20px; flex-shrink: 0;">
+                    <div class="upload-layout">
+                        <div class="config-section">
+                            <div class="section-title">上传配置</div>
+                            <div class="config-content">
+                                <div class="form-group">
+                                    <label for="task-id" class="form-label">Task ID</label>
+                                    <input type="text" class="form-control" id="task-id" value="task-123456">
+                                    <div class="form-help">任务ID: 用于上传到指定流水线下</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="chunk-size" class="form-label">分块大小</label>
+                                    <input type="number" class="form-control" id="chunk-size" value="5242880">
+                                    <div class="form-help">默认: 5MB</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="parallel-uploads" class="form-label">单文件并行数</label>
+                                    <input type="number" class="form-control" id="parallel-uploads" value="6">
+                                    <div class="form-help">分块并行数</div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="queue-concurrency" class="form-label">队列并发数</label>
+                                    <input type="number" class="form-control" id="queue-concurrency" value="3" min="1" max="10">
+                                    <div class="form-help">同时上传文件数</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="upload-section">
+                            <div class="upload-zone" id="drop-zone">
+                                <div class="upload-icon">📁</div>
+                                <h3 class="upload-title">拖放文件到这里或点击选择</h3>
+                                <p class="upload-subtitle">支持多文件同时上传，任意格式</p>
+                                <button type="button" class="btn button-sure" id="select-file-btn">选择文件</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <input type="file" class="d-none" id="file-upload-input" multiple>
+
+                    <div id="upload-queue" class="d-none" style="margin-top: 20px;">
+                        <div class="stats" id="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">总计</div>
+                                <div class="stat-value" id="total-count">0</div>
+                            </div>
+                            <div class="stat-item stat-waiting">
+                                <div class="stat-label">排队中</div>
+                                <div class="stat-value" id="waiting-count">0</div>
+                            </div>
+                            <div class="stat-item stat-uploading">
+                                <div class="stat-label">上传中</div>
+                                <div class="stat-value" id="uploading-count">0</div>
+                            </div>
+                            <div class="stat-item stat-paused">
+                                <div class="stat-label">已暂停</div>
+                                <div class="stat-value" id="paused-count">0</div>
+                            </div>
+                            <div class="stat-item stat-error">
+                                <div class="stat-label">失败</div>
+                                <div class="stat-value" id="error-count">0</div>
+                            </div>
+                        </div>
+
+                        <div class="action-bar">
+                            <button class="btn button-sure" id="start-all-btn">开始全部</button>
+                            <button class="btn button-cancel" id="pause-all-btn">暂停全部</button>
+                            <button class="btn button-sure" id="resume-all-btn">恢复全部</button>
+                            <button class="btn button-cancel" id="clear-all-btn">清空队列</button>
+                        </div>
+
+                        <div class="file-list" id="file-list"></div>
+                    </div>
+                </div>
+
+                <div style="background: white; border-radius: var(--border-radius); padding: 20px; flex: 1; overflow: hidden; display: flex; flex-direction: column;">
+                    <h6 style="margin: 0 0 16px 0; color: var(--gray-700);">上传记录</h6>
+                    <div class="history-list" id="upload-history" style="flex: 1; overflow-y: auto;">
+                        <div class="empty-state">
+                            <div class="empty-icon">📦</div>
+                            <div class="empty-title">暂无上传记录</div>
+                            <p class="empty-text">上传完成的文件会显示在这里</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    bindCustomEvents() {
+        this.uploadManager.initializeElements();
     }
 }
 
