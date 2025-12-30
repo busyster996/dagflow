@@ -37,7 +37,6 @@ trap _save_exit_code EXIT INT TERM
 func (s *script) beforeExec() {
 	s.cmd.SysProcAttr = &syscall.SysProcAttr{
 		Setpgid:   true,
-		Pdeathsig: syscall.SIGKILL,
 	}
 	s.cmd.Cancel = func() error {
 		defer func() {
