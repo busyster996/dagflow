@@ -2,6 +2,7 @@ package dagcuter
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -72,7 +73,7 @@ func (d *Dagcuter) ResizeWorker(newSize int) {
 func (d *Dagcuter) Execute(ctx context.Context) (map[string]map[string]any, error) {
 	defer d.results.Clear()
 	defer d.worker.Close()
-	errCh := make(chan error, 1)
+	errCh := make(chan error, len(d.Tasks)+1)
 
 	for name, deg := range d.inDegrees {
 		if deg == 0 {
@@ -81,23 +82,20 @@ func (d *Dagcuter) Execute(ctx context.Context) (map[string]map[string]any, erro
 		}
 	}
 
-	done := make(chan struct{})
-	go func() {
-		d.wg.Wait()
-		close(done)
-	}()
+	d.wg.Wait()
+	close(errCh)
+	var err error
 
-	select {
-	case <-done:
-		results := make(map[string]map[string]any)
-		d.results.Range(func(key, value any) bool {
-			results[key.(string)] = value.(map[string]any)
-			return true
-		})
-		return results, nil
-	case err := <-errCh:
-		return nil, err
+	for _err := range errCh {
+		err = errors.Join(err, _err)
 	}
+
+	results := make(map[string]map[string]any)
+	d.results.Range(func(key, value any) bool {
+		results[key.(string)] = value.(map[string]any)
+		return true
+	})
+	return results, err
 }
 
 func (d *Dagcuter) runTask(ctx context.Context, name string, errCh chan error) {

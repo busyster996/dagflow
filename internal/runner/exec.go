@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"runtime/debug"
 	"strings"
 	"time"
@@ -16,18 +15,9 @@ import (
 	"golang.org/x/text/transform"
 
 	"github.com/busyster996/dagflow/internal/common"
-	"github.com/busyster996/dagflow/internal/runner/xexec"
 	"github.com/busyster996/dagflow/internal/storage"
 	"github.com/busyster996/dagflow/pkg/logx"
-)
-
-var (
-	digitRe = regexp.MustCompile(`\d+`)
-)
-
-const (
-	// 最大缓冲区大小 100MB
-	maxCapacity = 100 * 1024 * 1024
+	"github.com/busyster996/dagflow/pkg/xexec"
 )
 
 type sCmd struct {
