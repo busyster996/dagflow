@@ -26,18 +26,29 @@ func staticHandler() gin.HandlerFunc {
 		} else {
 			path = strings.TrimPrefix(path, "/")
 		}
+		
+		// 尝试读取文件
 		val, ok := staticCache.Load(path)
 		if !ok {
 			var err error
 			val, err = staticFileContent(path)
 			if err != nil {
-				c.AbortWithStatus(http.StatusNotFound)
-				return
+				// SPA fallback: 如果文件不存在，返回 index.html
+				// 这样 Vue Router 可以处理路由
+				val, err = staticFileContent("index.html")
+				if err != nil {
+					c.AbortWithStatus(http.StatusNotFound)
+					return
+				}
+				path = "index.html"
 			}
 			staticCache.Store(path, val)
 		}
+		
 		content := val.([]byte)
 		c.Header("Content-Length", strconv.Itoa(len(content)))
+		c.Header("Cache-Control", "public, max-age=31536000")
+		
 		mimeType := mime.TypeByExtension(filepath.Ext(path))
 		if mimeType != "" {
 			c.Header("Content-Type", mimeType)

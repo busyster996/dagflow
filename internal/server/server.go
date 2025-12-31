@@ -193,6 +193,9 @@ func (p *sServer) newTusSvr(basePath string) error {
 	p.tusd, err = tusd.NewHandler(tusd.Config{
 		BasePath:      basePath,
 		StoreComposer: composer,
+		Cors: &tusd.CorsConfig{
+			Disable: true,
+		},
 		PreUploadCreateCallback: func(hook tusd.HookEvent) (tusd.HTTPResponse, tusd.FileInfoChanges, error) {
 			id := ksuid.New().String()
 			taskID, ok := hook.Upload.MetaData["task_id"]

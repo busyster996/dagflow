@@ -1,6 +1,8 @@
 package router
 
 import (
+	"time"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/pprof"
@@ -38,7 +40,8 @@ func New() (*gin.Engine, error) {
 	router.Use(
 		zap.Logger,
 		zap.Recovery,
-		cors.Default(),
+		//cors.Default(),
+		crossOrigin(),
 		gzip.Gzip(gzip.DefaultCompression),
 		func(c *gin.Context) {
 			c.Header("Server", "Gin")
@@ -105,4 +108,17 @@ func New() (*gin.Engine, error) {
 	// no route
 	router.NoRoute(staticHandler())
 	return router, nil
+}
+
+func crossOrigin() gin.HandlerFunc {
+	return cors.New(cors.Config{
+		ExposeHeaders:    []string{"*"},
+		AllowMethods:     []string{"*"},
+		AllowHeaders:     []string{"*"},
+		AllowAllOrigins:  true,
+		AllowCredentials: true,
+		AllowWildcard:    true,
+		AllowWebSockets:  true,
+		MaxAge:           12 * time.Hour,
+	})
 }
