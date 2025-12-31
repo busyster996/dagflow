@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="DagFlow">
+  <title>DagFlow</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔄</text></svg>">
+  
+  <!-- API配置脚本 - 运行时动态获取地址 -->
+  <script>
+    (function() {
+      'use strict';
+      
+      /**
+       * 获取应用基础路径
+       * @returns {string} 基础路径
+       */
+      function getBasePath() {
+        const currentUrl = new URL(window.location.href);
+        const pathSegments = currentUrl.pathname.split('/');
+        
+        // 移除文件名部分
+        if (pathSegments[pathSegments.length - 1].includes('.')) {
+          pathSegments.pop();
+        }
+        
+        let basePath = pathSegments.join('/');
+        
+        // 移除尾部斜杠
+        if (basePath.endsWith('/')) {
+          basePath = basePath.slice(0, -1);
+        }
+        
+        return basePath;
+      }
+
+      // 应用配置对象
+      const AppConfig = {
+        hostname: window.location.hostname,
+        protocol: window.location.protocol,
+        basePath: getBasePath(),
+        port: window.location.port || (window.location.protocol === 'https:' ? '443' : '80'),
+        
+        get wsProtocol() {
+          return this.protocol === 'https:' ? 'wss' : 'ws';
+        },
+        
+        get baseUrl() {
+          return `${this.protocol}//${this.hostname}:${this.port}${this.basePath}`;
+        },
+        
+        get wsBaseUrl() {
+          return `${this.wsProtocol}://${this.hostname}:${this.port}${this.basePath}`;
+        },
+        
+        api: {
+          event: '/api/v1/event',
+          task: '/api/v1/task',
+          pipeline: '/api/v1/pipeline'
+        }
+      };
+
+      // 暴露全局配置供应用使用
+      window.APP_CONFIG = AppConfig;
+    })();
+  </script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

@@ -1,11 +1,13 @@
 package router
 
 import (
-	"time"
+	"embed"
+	"net/http"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-contrib/pprof"
+	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
 
@@ -19,6 +21,9 @@ import (
 	"github.com/busyster996/dagflow/internal/server/router/middleware/zap"
 	"github.com/busyster996/dagflow/pkg/info"
 )
+
+//go:embed all:static
+var frontendFS embed.FS
 
 // New
 // @title			DAG Flow
@@ -36,12 +41,15 @@ import (
 // @license.name	GPL-3.0
 // @license.url		https://github.com/busyster996/dagflow/blob/main/LICENSE
 func New() (*gin.Engine, error) {
+	fs, err := static.EmbedFolder(frontendFS, "static")
+	if err != nil {
+		return nil, err
+	}
 	router := gin.New()
 	router.Use(
 		zap.Logger,
 		zap.Recovery,
-		//cors.Default(),
-		crossOrigin(),
+		cors.Default(),
 		gzip.Gzip(gzip.DefaultCompression),
 		func(c *gin.Context) {
 			c.Header("Server", "Gin")
@@ -49,6 +57,7 @@ func New() (*gin.Engine, error) {
 			c.Header("X-Version", info.Version)
 			c.Header("X-Powered-By", info.UserEmail)
 		},
+		static.Serve("/", fs),
 	)
 	// debug pprof
 	pprof.Register(router)
@@ -106,19 +115,8 @@ func New() (*gin.Engine, error) {
 	})
 
 	// no route
-	router.NoRoute(staticHandler())
-	return router, nil
-}
-
-func crossOrigin() gin.HandlerFunc {
-	return cors.New(cors.Config{
-		ExposeHeaders:    []string{"*"},
-		AllowMethods:     []string{"*"},
-		AllowHeaders:     []string{"*"},
-		AllowAllOrigins:  true,
-		AllowCredentials: true,
-		AllowWildcard:    true,
-		AllowWebSockets:  true,
-		MaxAge:           12 * time.Hour,
+	router.NoRoute(func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/")
 	})
+	return router, nil
 }

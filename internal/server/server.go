@@ -82,7 +82,7 @@ func (p *sServer) startServer() error {
 	handler.Any("/api/v1/files/*any", gin.WrapH(http.StripPrefix("/api/v1/files/", p.tusd)))
 
 	p.http = &http.Server{
-		Handler:           http.StripPrefix(viper.GetString("relative_path"), handler),
+		Handler:           handler,
 		ReadHeaderTimeout: 120 * time.Second,
 		IdleTimeout:       120 * time.Second,
 		MaxHeaderBytes:    15 << 20, // 15MB

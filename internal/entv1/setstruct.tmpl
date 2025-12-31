@@ -1,0 +1,23 @@
+{{ define "setstruct" }}
+{{ $pkg := base $.Config.Package }}
+{{ template "header" $ }}
+
+{{- range $n := $.Nodes }}
+  {{ $builder := $n.CreateName }}
+  {{ $receiver := $n.CreateReceiver }}
+
+  func ({{ $receiver }} *{{ $builder }}) Set{{ $n.Name }}(input *{{ $n.Name }}) *{{ $builder }} {
+    {{- range $f := $n.Fields }}
+      {{- $setter := print "Set" $f.StructField }}
+      {{- if $f.NillableValue }}
+        if input.{{ $f.StructField }} != nil {
+          {{ $receiver }}.{{ $setter }}(*input.{{ $f.StructField }})
+        }
+      {{- else }}
+        {{ $receiver }}.{{ $setter }}(input.{{ $f.StructField }})
+      {{- end }}
+    {{- end }}
+    return {{ $receiver }}
+  }
+{{- end }}
+{{ end }}

@@ -61,7 +61,6 @@ func New() *cobra.Command {
 			return nil
 		},
 	}
-	cmd.Flags().String("relative_path", "/", "web relative path")
 	cmd.Flags().String("addr", "tcp://0.0.0.0:2376", "listening address.")
 	cmd.Flags().Duration("exec_timeout", 24*time.Hour, "set the task exec command expire time")
 

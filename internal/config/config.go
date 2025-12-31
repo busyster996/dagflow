@@ -39,7 +39,6 @@ func Init() error {
 		viper.Set("node_name", fmt.Sprintf("%d-%d", viper.GetInt64("kind_id"), viper.GetInt64("node_id")))
 	}
 
-	viper.Set("relative_path", strings.TrimSuffix(viper.GetString("relative_path"), "/"))
 	var logfile string
 	if viper.GetString("log_output") == "file" {
 		logfile = filepath.Join(viper.GetString("log_dir"), utility.ServiceName+".log")
