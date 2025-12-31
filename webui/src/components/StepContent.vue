@@ -121,12 +121,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, watch, onUnmounted, nextTick, shallowRef } from 'vue'
 import { InfoFilled, Key, Setting, Document, Monitor } from '@element-plus/icons-vue'
 import { getStepDetail } from '@/api/task'
 import { useWebSocketList } from '@/composables/useWebSocket'
 import { API_ENDPOINTS } from '@/config'
 import { SectionHeader, InfoItem, StatusTag, EmptyState } from '@/components/base'
+import { throttle, rafThrottle } from '@/utils/throttle'
 
 const props = defineProps({
   taskName: String,
@@ -134,7 +135,7 @@ const props = defineProps({
 })
 
 const loading = ref(false)
-const stepData = ref(null)
+const stepData = shallowRef(null) // 使用shallowRef
 const output = ref('')
 const outputScrollbar = ref(null)
 const outputRef = ref(null)
@@ -142,6 +143,52 @@ const expandedSections = reactive({
   env: false,
   input: false,
 })
+
+// 性能监控
+const logStats = {
+  messageCount: 0,
+  lastScrollTime: 0,
+  bufferSize: 0,
+}
+
+// 日志缓冲区，用于批量更新
+let logBuffer = []
+let isScrolling = false
+
+/**
+ * 节流的滚动到底部函数
+ */
+const throttledScrollToBottom = rafThrottle(() => {
+  if (isScrolling || !outputScrollbar.value) return
+  
+  logStats.lastScrollTime = Date.now()
+  const scrollEl = outputScrollbar.value.$refs.wrap$
+  if (scrollEl) {
+    // 检查是否已在底部附近（容差50px）
+    const isNearBottom = scrollEl.scrollHeight - scrollEl.scrollTop - scrollEl.clientHeight < 50
+    if (isNearBottom) {
+      scrollEl.scrollTop = scrollEl.scrollHeight
+    }
+  }
+})
+
+/**
+ * 批量更新日志输出
+ */
+const flushLogBuffer = throttle(() => {
+  if (logBuffer.length === 0) return
+  
+  const newLogs = logBuffer.join('\n')
+  output.value += newLogs + '\n'
+  
+  logStats.bufferSize = logBuffer.length
+  logBuffer = []
+  
+  // 滚动到底部
+  nextTick(() => {
+    throttledScrollToBottom()
+  })
+}, 100) // 100ms批量更新一次
 
 // WebSocket 管理日志输出
 const {
@@ -152,18 +199,17 @@ const {
   {
     onMessage: (response) => {
       if (response.data && response.data.length > 0) {
-        const newData = response.data.map(item => item.content).join('\n')
-        output.value += newData + '\n'
-
-        // 自动滚动到底部
-        nextTick(() => {
-          if (outputScrollbar.value) {
-            const scrollEl = outputScrollbar.value.$refs.wrap$
-            if (scrollEl) {
-              scrollEl.scrollTop = scrollEl.scrollHeight
-            }
+        logStats.messageCount++
+        
+        // 将新日志添加到缓冲区
+        response.data.forEach(item => {
+          if (item.content) {
+            logBuffer.push(item.content)
           }
         })
+        
+        // 批量更新
+        flushLogBuffer()
       }
     },
     onError: () => {

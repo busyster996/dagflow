@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, watch, computed, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted, nextTick, shallowRef } from 'vue'
 import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { Background } from '@vue-flow/background'
 import { Controls } from '@vue-flow/controls'
@@ -95,6 +95,7 @@ import { MiniMap } from '@vue-flow/minimap'
 import { MarkerType } from '@vue-flow/core'
 import CustomNode from './CustomNode.vue'
 import { stepAction } from '@/api/task'
+import { rafThrottle } from '@/utils/throttle'
 
 const props = defineProps({
   steps: {
@@ -113,8 +114,8 @@ const props = defineProps({
 
 const emit = defineEmits(['node-click'])
 
-const nodes = ref([])
-const edges = ref([])
+const nodes = shallowRef([]) // 使用shallowRef避免深度响应
+const edges = shallowRef([]) // 使用shallowRef避免深度响应
 const contextMenu = ref({
   visible: false,
   x: 0,
@@ -135,11 +136,81 @@ const stats = computed(() => {
 
 let isFirstRender = true
 let savedPositions = {}
+let lastStepsHash = ''
+
+// 性能监控
+const renderStats = {
+  updateCount: 0,
+  fullRenderCount: 0,
+  incrementalUpdateCount: 0,
+}
 
 const { fitView, zoomIn: flowZoomIn, zoomOut: flowZoomOut, setViewport } = useVueFlow()
 
-// 转换步骤数据为 Vue Flow 格式
+/**
+ * 生成步骤数据哈希用于对比
+ */
+const generateStepsHash = (steps) => {
+  return steps.map(s => `${s.name}:${s.state}:${s.code}`).join('|')
+}
+
+/**
+ * 增量更新节点 - 只更新变化的节点
+ */
+const incrementalUpdateNodes = (newSteps) => {
+  renderStats.incrementalUpdateCount++
+  
+  const updatedNodes = nodes.value.map(node => {
+    const newStep = newSteps.find(s => s.name === node.id)
+    if (!newStep) return node
+    
+    // 检查步骤状态是否变化
+    if (node.data.step.state === newStep.state &&
+        node.data.step.code === newStep.code) {
+      return node // 无变化，保持原对象
+    }
+    
+    // 状态变化，创建新节点对象
+    return {
+      ...node,
+      data: {
+        ...node.data,
+        step: newStep,
+      },
+    }
+  })
+  
+  // 更新边的动画状态
+  const updatedEdges = edges.value.map(edge => {
+    const targetStep = newSteps.find(s => s.name === edge.target)
+    if (!targetStep) return edge
+    
+    const shouldAnimate = targetStep.state === 'running'
+    if (edge.animated === shouldAnimate &&
+        edge.style.stroke === getEdgeColor(targetStep.state)) {
+      return edge // 无变化
+    }
+    
+    return {
+      ...edge,
+      animated: shouldAnimate,
+      style: {
+        ...edge.style,
+        stroke: getEdgeColor(targetStep.state),
+      },
+    }
+  })
+  
+  nodes.value = updatedNodes
+  edges.value = updatedEdges
+}
+
+/**
+ * 转换步骤数据为 Vue Flow 格式
+ */
 const convertStepsToFlow = () => {
+  renderStats.fullRenderCount++
+  
   const newNodes = []
   const newEdges = []
 

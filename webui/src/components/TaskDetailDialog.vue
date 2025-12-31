@@ -170,18 +170,18 @@
 </template>
 
 <script setup>
-import { ref, watch, onUnmounted } from 'vue'
-import { 
-  Menu, 
-  Close, 
-  InfoFilled, 
-  ChatLineSquare, 
-  Key, 
+import { ref, watch, onUnmounted, computed, shallowRef } from 'vue'
+import {
+  Menu,
+  Close,
+  InfoFilled,
+  ChatLineSquare,
+  Key,
   Setting,
   Connection,
-  FullScreen, 
-  ZoomIn, 
-  ZoomOut, 
+  FullScreen,
+  ZoomIn,
+  ZoomOut,
   Refresh,
   Operation,
 } from '@element-plus/icons-vue'
@@ -191,6 +191,7 @@ import { API_ENDPOINTS } from '@/config'
 import { DialogHeader, SectionHeader, InfoItem, StatusTag, EmptyState } from '@/components/base'
 import VueFlowGraph from './VueFlowGraph.vue'
 import StepContent from './StepContent.vue'
+import { throttle, debounce } from '@/utils/throttle'
 
 const props = defineProps({
   modelValue: Boolean,
@@ -202,10 +203,22 @@ const emit = defineEmits(['update:modelValue'])
 const dialogVisible = ref(false)
 const loading = ref(false)
 const taskData = ref(null)
-const steps = ref([])
+const steps = shallowRef([]) // 使用shallowRef避免深度响应
 const openedSteps = ref([])
 const graphRef = ref(null)
 let wsManager = null
+
+// 性能监控
+const performanceStats = ref({
+  wsMessageCount: 0,
+  httpRequestCount: 0,
+  lastUpdateTime: 0,
+  renderCount: 0,
+})
+
+// 记录上次任务状态，避免无意义的HTTP请求
+let lastTaskState = null
+let taskDetailCache = null
 
 watch(
   () => props.modelValue,
@@ -226,6 +239,88 @@ watch(dialogVisible, (val) => {
 })
 
 /**
+ * 节流更新步骤数据 - 避免高频渲染
+ */
+const throttledUpdateSteps = throttle((newSteps) => {
+  performanceStats.value.renderCount++
+  
+  // 增量更新：只更新变化的步骤
+  if (steps.value.length === newSteps.length) {
+    let hasChanges = false
+    const updatedSteps = steps.value.map((oldStep, index) => {
+      const newStep = newSteps[index]
+      // 比较关键属性是否变化
+      if (
+        oldStep.name === newStep.name &&
+        oldStep.state === newStep.state &&
+        oldStep.code === newStep.code &&
+        JSON.stringify(oldStep.time) === JSON.stringify(newStep.time)
+      ) {
+        return oldStep // 无变化，保持原对象引用
+      }
+      hasChanges = true
+      return newStep // 有变化，使用新对象
+    })
+    
+    if (hasChanges) {
+      steps.value = updatedSteps
+    }
+  } else {
+    // 步骤数量变化，全量更新
+    steps.value = newSteps
+  }
+}, 100) // 100ms节流
+
+/**
+ * 防抖加载任务详情 - 避免频繁HTTP请求
+ */
+const debouncedLoadTaskDetail = debounce(async (forceUpdate = false) => {
+  performanceStats.value.httpRequestCount++
+  
+  try {
+    const response = await getTaskDetail(props.taskName)
+    const newTaskData = response.data
+    
+    // 检查任务状态是否真的变化
+    const currentState = newTaskData?.state
+    if (!forceUpdate && lastTaskState === currentState && taskDetailCache) {
+      // 状态未变化，使用缓存
+      return
+    }
+    
+    lastTaskState = currentState
+    taskDetailCache = newTaskData
+    taskData.value = newTaskData
+  } catch (error) {
+    console.error('获取任务详情失败:', error)
+  }
+}, 500, { maxWait: 2000 }) // 500ms防抖，最多2秒必须执行一次
+
+/**
+ * 智能更新任务信息 - 仅在关键状态变化时更新
+ */
+const smartUpdateTaskInfo = (stepsData) => {
+  // 检测任务状态变化
+  const hasRunning = stepsData.some(s => s.state === 'running')
+  const hasFailed = stepsData.some(s => s.state === 'failed')
+  const allStopped = stepsData.length > 0 && stepsData.every(s => s.state === 'stopped' || s.state === 'failed')
+  
+  const currentTaskState = taskData.value?.state
+  
+  // 只在以下情况触发HTTP请求：
+  // 1. 没有缓存数据
+  // 2. 有步骤正在运行且任务状态不是running
+  // 3. 所有步骤完成但任务状态不是stopped
+  // 4. 有失败步骤但任务状态不是failed
+  if (!taskData.value ||
+      (hasRunning && currentTaskState !== 'running') ||
+      (allStopped && currentTaskState !== 'stopped') ||
+      (hasFailed && currentTaskState !== 'failed')) {
+    debouncedLoadTaskDetail()
+  }
+}
+
+/**
  * 初始化WebSocket连接
  */
 const initWebSocket = () => {
@@ -238,10 +333,15 @@ const initWebSocket = () => {
     `${API_ENDPOINTS.task}/${props.taskName}/step`,
     {
       onMessage: (response) => {
-        if (response.data) {
-          steps.value = response.data
-          // 实时更新任务信息
-          loadTaskDetail()
+        performanceStats.value.wsMessageCount++
+        performanceStats.value.lastUpdateTime = Date.now()
+        
+        if (response.data && Array.isArray(response.data)) {
+          // 节流更新步骤数据
+          throttledUpdateSteps(response.data)
+          
+          // 智能更新任务信息（带防抖）
+          smartUpdateTaskInfo(response.data)
         }
       }
     }
@@ -252,13 +352,16 @@ const initWebSocket = () => {
 }
 
 /**
- * 加载任务详情
+ * 加载任务详情（初始加载）
  */
 const loadTaskDetail = async () => {
   loading.value = true
   try {
     const response = await getTaskDetail(props.taskName)
     taskData.value = response.data
+    lastTaskState = response.data?.state
+    taskDetailCache = response.data
+    performanceStats.value.httpRequestCount++
   } catch (error) {
     console.error('获取任务详情失败:', error)
   } finally {
@@ -319,18 +422,51 @@ const handleActualSize = () => {
  * 关闭对话框
  */
 const handleClose = () => {
+  // 取消所有待执行的防抖/节流任务
+  if (debouncedLoadTaskDetail.cancel) {
+    debouncedLoadTaskDetail.cancel()
+  }
+  if (throttledUpdateSteps.cancel) {
+    throttledUpdateSteps.cancel()
+  }
+  
   if (wsManager) {
     wsManager.close()
     wsManager = null
   }
+  
   openedSteps.value = []
   steps.value = []
   taskData.value = null
+  lastTaskState = null
+  taskDetailCache = null
+  
+  // 打印性能统计（开发模式）
+  if (import.meta.env.DEV) {
+    console.log('📊 TaskDetail性能统计:', performanceStats.value)
+  }
+  
+  // 重置性能统计
+  performanceStats.value = {
+    wsMessageCount: 0,
+    httpRequestCount: 0,
+    lastUpdateTime: 0,
+    renderCount: 0,
+  }
 }
 
 onUnmounted(() => {
   handleClose()
 })
+
+// 开发模式下监控性能
+if (import.meta.env.DEV) {
+  watch(performanceStats, (stats) => {
+    if (stats.wsMessageCount > 100 || stats.httpRequestCount > 50) {
+      console.warn('⚠️ 性能警告: WebSocket消息或HTTP请求过多', stats)
+    }
+  }, { deep: true })
+}
 </script>
 
 <style lang="scss" scoped>
